@@ -66,9 +66,17 @@ export default class ApiService extends BaseApiService {
     if (subUrl) {
       url += `/${subUrl}`;
     }
+
+    let requestBody = JSON.stringify(data);
+
+    // formData 자체로 넘어올 예정
+    if (rewriteOptions?.headers?.['Content-Type'] === 'multipart/form-data') {
+      requestBody = data;
+    }
+
     const options = {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: requestBody,
       ...rewriteOptions,
     };
 

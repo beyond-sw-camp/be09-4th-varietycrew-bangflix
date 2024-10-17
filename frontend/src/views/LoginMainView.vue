@@ -45,7 +45,7 @@ const login = async () => {
   userStore.logout();
 
   // 토큰 발급
-  const userTokens = await $api.auth.create(
+  const userTokens = await $api.auth.post(
     {
       id: id.value,
       password: password.value,
