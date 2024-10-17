@@ -1,0 +1,60 @@
+/*
+ * 폰트 셋팅
+ */
+@font-face {
+    font-family: "NanumGothic";
+    src:local("NanumGothic-Regular"),
+    url('./fonts/NanumGothic-Regular.ttf') 
+}
+
+@font-face {
+    font-family: "NanumGothicBold";
+    src:local("NanumGothic-Bold"),
+    url('./fonts/NanumGothic-Bold.ttf') 
+}
+
+@font-face {
+    font-family: "NanumGothicExtraBold";
+    src:local("NanumGothic-ExtraBold"),
+    url('./fonts/NanumGothic-ExtraBold.ttf') 
+}
+
+
+* {
+    font-family: "NanumGothic";
+}
+
+h1, h2 {
+    font-family: "NanumGothicExtraBold";
+}
+
+h3, h4, h5, h6 {
+    font-family: "NanumGothicBold";
+}
+
+/*
+ * default 스타일 셋팅
+ */
+body {
+    width: 100vw;
+    height: 100vh;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/*
+ * reset
+ */
+body, h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+}
