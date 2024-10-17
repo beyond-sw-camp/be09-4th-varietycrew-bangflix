@@ -101,7 +101,9 @@ const goLoginPage = () => {
   router.push('/login');
 };
 
-const goRegisterPage = () => {};
+const goRegisterPage = () => {
+  router.push('/register');
+};
 
 const logout = () => {
   userStore.logout();

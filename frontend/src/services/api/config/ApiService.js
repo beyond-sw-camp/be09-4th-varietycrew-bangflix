@@ -61,7 +61,7 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async create(data = {}, subUrl, rewriteOptions) {
+  async post(data = {}, subUrl, rewriteOptions) {
     let url = `${this.baseUrl}/${this.resource}`;
     if (subUrl) {
       url += `/${subUrl}`;
@@ -78,7 +78,7 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async updateById(id, data = {}, rewriteOptions) {
+  async put(id, data = {}, rewriteOptions) {
     if (!id) throw new Error('{id} is not provided');
 
     const url = `${this.baseUrl}/${this.resource}/${id}`;
@@ -94,7 +94,7 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async deleteById(id) {
+  async delete(id) {
     if (!id) throw new Error('{id} is not provided');
 
     const url = `${this.baseUrl}/${this.resource}/${id}`;
