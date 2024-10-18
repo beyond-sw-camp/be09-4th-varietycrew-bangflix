@@ -3,7 +3,7 @@
     <div class="detail-container">
       <div class="profile-container">
         <h1>{{ event.category }}</h1>
-        <EventCard :card="event.theme" next-page="THEME" />
+        <ThemeCard :theme="event.theme" next-page="THEME" />
       </div>
       <div class="content-container">
         <Card class="content-aria">
@@ -31,7 +31,7 @@
 
 <script setup>
 import DetailPageLayout from '@/components/layouts/DetailPageLayout.vue';
-import EventCard from '@/components/cards/EventCard.vue';
+import ThemeCard from '@/components/cards/ThemeCard.vue';
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 

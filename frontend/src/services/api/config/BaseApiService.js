@@ -9,8 +9,7 @@ export default class BaseApiService {
     this.resource = resource;
   }
 
-  handleError(err) {
-    const errMsg = err.message || '알 수 없는 에러 발생';
+  handleError(errMsg) {
     DOMEventService.dispatchApiError(errMsg);
   }
 }

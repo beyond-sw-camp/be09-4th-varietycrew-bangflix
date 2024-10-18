@@ -5,7 +5,7 @@
     <template v-if="cards.length > 0">
       <div class="event-card-container">
         <template v-for="(card, id) in cards" :key="id">
-          <EventCard :card="card" next-page="EVENT" />
+          <ThemeCard :theme="card" next-page="EVENT" />
         </template>
       </div>
     </template>
@@ -15,7 +15,7 @@
     <template v-if="cards.length > 0">
       <div class="event-card-container">
         <template v-for="(card, id) in cards" :key="id">
-          <EventCard :card="card" next-page="EVENT" />
+          <ThemeCard :theme="card" next-page="EVENT" />
         </template>
       </div>
     </template>
@@ -26,7 +26,7 @@
 <script setup>
 import { ref } from 'vue';
 import PageLayout from '@/components/layouts/PageLayout.vue';
-import EventCard from '@/components/cards/EventCard.vue';
+import ThemeCard from '@/components/cards/ThemeCard.vue';
 import router from '@/router/routes';
 
 const goEventForm = () => {

@@ -15,35 +15,43 @@ export default class ApiService extends BaseApiService {
   // 요청을 처리하는 부분
   async #callApi(url, options) {
     try {
-      const fetchOptions = { ...options };
-
-      // headers default 설정값
+      // headers 값 셋팅
       const myHeaders = new Headers();
-      const rewriteContentType = options?.headers?.['Content-Type'];
-      myHeaders.append('Content-Type', rewriteContentType || 'application/json');
 
       if (this.#userStore.accessToken) {
         myHeaders.append('Authorization', `Bearer ${this.#userStore.accessToken}`);
       }
 
-      // 요청 시 보낼 최종 options 셋팅
+      // form data가 아니면 Content-Type 추가
+      if (options?.body && !(options.body instanceof FormData)) {
+        myHeaders.append('Content-Type', 'application/json');
+      }
+
+      const fetchOptions = { ...options };
       fetchOptions['headers'] = myHeaders;
 
       // 요청 시작
       const response = await fetch(url, fetchOptions);
 
       if (!response.ok) {
-        throw new Error(`Error occurred: ${response.status}`);
+        throw response;
       }
 
       return await response.json();
     } catch (err) {
-      this.handleError(err);
+      // 서버에서 보내주는 에러 메시지 뽑기
+      err.text().then(errResponse => {
+        const errRes = JSON.parse(errResponse);
+        this.handleError(errRes.msg || '알 수 없는 에러 발생');
+      });
     }
   }
 
-  async getAll(queryParams) {
+  async get(subUrl, queryParams) {
     let url = `${this.baseUrl}/${this.resource}`;
+    if (subUrl) {
+      url += `/${subUrl}`;
+    }
     if (queryParams) {
       url += `?${queryParams}`;
     }
@@ -52,16 +60,7 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async getById(id) {
-    if (!id) throw new Error('{id} is not provided');
-
-    const url = `${this.baseUrl}/${this.resource}/${id}`;
-
-    const responseData = await this.#callApi(url);
-    return responseData.result;
-  }
-
-  async post(data = {}, subUrl, rewriteOptions) {
+  async post(data = {}, subUrl) {
     let url = `${this.baseUrl}/${this.resource}`;
     if (subUrl) {
       url += `/${subUrl}`;
@@ -70,14 +69,13 @@ export default class ApiService extends BaseApiService {
     let requestBody = JSON.stringify(data);
 
     // formData 자체로 넘어올 예정
-    if (rewriteOptions?.headers?.['Content-Type'] === 'multipart/form-data') {
+    if (data instanceof FormData) {
       requestBody = data;
     }
 
     const options = {
       method: 'POST',
       body: requestBody,
-      ...rewriteOptions,
     };
 
     const responseData = await this.#callApi(url, options);
@@ -86,14 +84,22 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async put(id, data = {}, rewriteOptions) {
-    if (!id) throw new Error('{id} is not provided');
+  async put(data = {}, subUrl) {
+    let url = `${this.baseUrl}/${this.resource}`;
+    if (subUrl) {
+      url += `/${subUrl}`;
+    }
 
-    const url = `${this.baseUrl}/${this.resource}/${id}`;
+    let requestBody = JSON.stringify(data);
+
+    // formData 자체로 넘어올 예정
+    if (data instanceof FormData) {
+      requestBody = data;
+    }
+
     const options = {
       method: 'PUT',
-      body: JSON.stringify(data),
-      ...rewriteOptions,
+      body: requestBody,
     };
 
     const responseData = await this.#callApi(url, options);
@@ -102,12 +108,15 @@ export default class ApiService extends BaseApiService {
     return responseData.result;
   }
 
-  async delete(id) {
-    if (!id) throw new Error('{id} is not provided');
+  async delete(data, subUrl) {
+    let url = `${this.baseUrl}/${this.resource}`;
+    if (subUrl) {
+      url += `/${subUrl}`;
+    }
 
-    const url = `${this.baseUrl}/${this.resource}/${id}`;
     const options = {
       method: 'DELETE',
+      body: JSON.stringify(data),
     };
 
     const responseData = await this.#callApi(url, options);

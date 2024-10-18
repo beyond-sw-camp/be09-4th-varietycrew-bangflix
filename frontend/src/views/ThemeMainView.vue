@@ -28,70 +28,96 @@
 
     <!-- 검색 결과 목록 -->
     <div class="list-theme">
-      <Card v-for="index in 10" :key="index" style="overflow: hidden">
-        <template #header>
-          <img
-            alt="테마 이미지"
-            src="https://primefaces.org/cdn/primevue/images/card-vue.jpg"
-            height="250"
-            width="100%"
-            style="object-fit: cover"
-          />
-        </template>
-        <template #title>Advanced Card</template>
-        <template #subtitle>Card subtitle</template>
-        <template #content>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur error repudiandae
-            numquam deserunt quisquam repellat libero asperiores earum nam nobis, culpa ratione quam perferendis esse,
-            cupiditate neque quas!
-          </p>
-        </template>
-        <template #footer>
-          <Button label="테마 상세보기" fluid @click="clickTheme" />
-        </template>
-      </Card>
+      <ThemeCard v-for="theme in resultThemes" :key="theme.themeCode" :theme="theme" next-page="THEME" />
     </div>
   </PageLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import PageLayout from '@/components/layouts/PageLayout.vue';
 import FloatLabel from 'primevue/floatlabel';
 import InputText from 'primevue/inputtext';
 import SelectButton from 'primevue/selectbutton';
 import Divider from 'primevue/divider';
-import Card from 'primevue/card';
-import Button from 'primevue/button';
+import { $api } from '@/services/api/api';
+import ThemeCard from '@/components/cards/ThemeCard.vue';
 
 const router = useRouter();
 
 const keyword = ref('');
 const selectedGenres = ref([]);
-const genreOptions = ref([
-  { label: '공포', value: 1 },
-  { label: '추리', value: 2 },
-  { label: '드라마', value: 3 },
-  { label: '판타지', value: 3 },
-  { label: 'SF', value: 3 },
-  { label: '로맨스', value: 3 },
-  { label: '감성', value: 3 },
-  { label: '퓨전사극', value: 3 },
-  { label: '힐링', value: 3 },
-]);
-const selectedSorting = ref({ name: '최신 순', value: 'RECENT' });
+const genreOptions = ref([]);
+const selectedSorting = ref({ name: '최신 순', value: '' });
 const sortingOptions = ref([
-  { name: '최신 순', value: 'RECENT' },
-  { name: '리뷰 많은 순', value: 'REVIEW_DESC' },
-  { name: '좋아요 많은 순', value: 'LIKE_DESC' },
-  { name: '스크랩 많은 순', value: 'SCRAP_DESC' },
+  { name: '최신 순', value: '' },
+  { name: '리뷰 많은 순', value: 'review' },
+  { name: '좋아요 많은 순', value: 'like' },
+  { name: '스크랩 많은 순', value: 'scrap' },
 ]);
+const resultThemes = ref([]); // 검색 결과로 나온 테마 목록
+const userLikeThemeCodes = [];
+const userScrapThemeCodes = [];
+
+let debounce = null;
 
 const clickTheme = () => {
   router.push('/theme/detail/2');
 };
+
+const searchThemes = async (themeName, genres, filter) => {
+  const foundThemes = await $api.theme.searchThemes(
+    themeName,
+    genres.map(e => e.label), // 장르 이름
+    filter.value,
+  );
+  resultThemes.value = foundThemes;
+};
+
+onMounted(() => {
+  // 1. 전체 장르 목록 표시
+  $api.theme.getGenres().then(genres => {
+    // 장르 옵션 목록 만들기
+    const options = genres.map(genre => ({
+      value: genre.genreCode,
+      label: genre.name,
+    }));
+    genreOptions.value = options;
+  });
+
+  // 2. 테마 목록 표시
+  $api.theme.searchThemes().then(themes => {
+    resultThemes.value = themes;
+  });
+});
+
+// 장르가 변경되면 테마 검색
+watch(selectedGenres, newVal => {
+  searchThemes(keyword.value, newVal, selectedSorting.value);
+});
+
+// 키워드가 변경되면 테마 검색
+watch(keyword, newVal => {
+  if (debounce) {
+    clearTimeout(debounce);
+  }
+
+  debounce = setTimeout(() => {
+    searchThemes(newVal, selectedGenres.value, selectedSorting.value);
+  }, 500);
+});
+
+// 정렬기준이 변경되면 테마 검색
+watch(selectedSorting, newVal => {
+  searchThemes(keyword.value, selectedGenres.value, newVal);
+});
+
+onBeforeUnmount(() => {
+  if (debounce) {
+    clearTimeout(debounce);
+  }
+});
 </script>
 
 <style scoped>

@@ -55,7 +55,7 @@ import AppTypography from '../AppTypography.vue';
 
 const props = defineProps({
   reviews: {
-    type: Array,
+    type: Array, // ReviewDTO[]
     required: true,
   },
 });

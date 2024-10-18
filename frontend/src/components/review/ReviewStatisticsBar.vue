@@ -49,7 +49,7 @@ const startProgress = () => {
   label {
     margin-right: 10px;
     font-size: 14px;
-    width: 100px;
+    width: 200px;
   }
 
   .bar {

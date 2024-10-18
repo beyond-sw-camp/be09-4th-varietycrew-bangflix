@@ -13,7 +13,11 @@
             :invalid="isValidId === false"
             aria-describedby="helper-id"
           />
-          <Button label="중복확인" @click="checkDuplicateId" />
+          <Button
+            :label="isValidId ? '중복체크 완료' : '중복확인'"
+            :disabled="isValidId === true"
+            @click="checkDuplicateId"
+          />
         </InputGroup>
         <small v-if="helperId" id="helper-id" :class="{ error: isValidId === false, success: isValidId === true }">{{
           helperId
@@ -41,22 +45,22 @@
       </div>
 
       <div class="input-group">
-        <label for="check-password">비밀번호 확인</label>
+        <label for="confirm-password">비밀번호 확인</label>
         <InputGroup>
           <Password
-            id="check-password"
-            v-model="checkPassword"
-            :invalid="isValidCheckPassword === false"
+            id="confirm-password"
+            v-model="confirmPassword"
+            :invalid="isValidConfirmPassword === false"
             placeholder="비밀번호를 다시 입력해주세요"
             :feedback="false"
-            aria-describedby="helper-check-password"
+            aria-describedby="helper-confirm-password"
           />
         </InputGroup>
         <small
-          v-if="helperCheckPassword"
-          id="helper-check-password"
-          :class="{ error: isValidCheckPassword === false, success: isValidCheckPassword === true }"
-          >{{ helperCheckPassword }}</small
+          v-if="helperConfirmPassword"
+          id="helper-confirm-password"
+          :class="{ error: isValidConfirmPassword === false, success: isValidConfirmPassword === true }"
+          >{{ helperConfirmPassword }}</small
         >
       </div>
 
@@ -86,7 +90,11 @@
             placeholder="닉네임을 입력해주세요"
             :invalid="isValidNickname === false"
           />
-          <Button label="중복확인" @click="checkDuplicateNickname" />
+          <Button
+            :label="isValidNickname ? '중복체크 완료' : '중복확인'"
+            :disabled="isValidNickname === true"
+            @click="checkDuplicateNickname"
+          />
         </InputGroup>
         <small v-if="helperNickname" :class="{ error: isValidNickname === false, success: isValidNickname === true }">{{
           helperNickname
@@ -94,16 +102,16 @@
       </div>
 
       <!-- 프로필 사진 업로드 -->
-      <div class="input-group">
-        <label for="profileImage">프로필 사진(선택)</label>
-        <FileUpload
-          name="profilePicture"
-          url="./upload"
-          accept="image/*"
-          mode="basic"
-          auto
-          choose-label="프로필 사진 업로드"
-        />
+      <div class="input-group mb-xl">
+        <label for="profileImage">프로필 사진(선택사항)</label>
+        <div class="flex-col gap-10 items-center">
+          <img v-if="previewUrl" class="profile-image" :src="previewUrl" />
+          <div v-else class="area-empty-image">
+            <i class="pi pi-user" style="font-size: 20px"></i>
+          </div>
+          <Button label="프로필 사진 선택" size="small" severity="secondary" @click="clickUpload" />
+          <input ref="profileImageRef" type="file" accept="image/*" style="display: none" @change="changeFile" />
+        </div>
       </div>
 
       <!-- 제출 버튼 -->
@@ -115,10 +123,9 @@
 <script setup>
 import InputGroup from 'primevue/inputgroup';
 import InputText from 'primevue/inputtext';
-import FileUpload from 'primevue/fileupload';
 import Button from 'primevue/button';
 
-import { ref, watch } from 'vue';
+import { ref, watch, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import { $api } from '@/services/api/api';
 import useToastMessage from '@/hooks/useToastMessage';
@@ -128,20 +135,22 @@ const { showWarning } = useToastMessage();
 
 const id = ref('');
 const password = ref('');
-const checkPassword = ref('');
+const confirmPassword = ref('');
 const email = ref('');
 const nickname = ref('');
-const profileImage = ref('');
+const profileImageRef = ref('');
+let profileImageFile = null;
+const previewUrl = ref('');
 
 const isValidId = ref(null);
 const isValidPassword = ref(null);
-const isValidCheckPassword = ref(null);
+const isValidConfirmPassword = ref(null);
 const isValidEmail = ref(null);
 const isValidNickname = ref(null);
 
 const helperId = ref('');
 const helperPassword = ref('');
-const helperCheckPassword = ref('');
+const helperConfirmPassword = ref('');
 const helperEmail = ref('');
 const helperNickname = ref('');
 
@@ -158,11 +167,13 @@ const checkDuplicateId = async () => {
   }
 
   const result = await $api.auth.post(
-    id.value,
+    {
+      id: id.value,
+    },
     'confirm-id', // 서브 URL
   );
 
-  if (result.isDuplicate) {
+  if (result.duplicate) {
     isValidId.value = false;
     helperId.value = '이미 사용 중인 아이디입니다.';
   } else {
@@ -180,11 +191,13 @@ const checkDuplicateNickname = async () => {
   }
 
   const result = await $api.auth.post(
-    nickname.value,
+    {
+      nickname: nickname.value,
+    },
     'confirm-nickname', // 서브 URL
   );
 
-  if (result.isDuplicate) {
+  if (result.duplicate) {
     isValidNickname.value = false;
     helperNickname.value = '이미 사용 중인 닉네임입니다.';
   } else {
@@ -213,7 +226,7 @@ const submitForm = async () => {
   if (
     !isValidId.value ||
     !isValidPassword.value ||
-    !isValidCheckPassword.value ||
+    !isValidConfirmPassword.value ||
     !isValidEmail.value ||
     !isValidNickname.value
   ) {
@@ -221,24 +234,48 @@ const submitForm = async () => {
     return;
   }
 
-  const formData = new FormData();
-  formData.append('signupDto', {
+  const signupData = {
     id: id.value,
     password: password.value,
     nickname: nickname.value,
     email: email.value,
     isAdmin: false,
-  });
-  formData.append('imgFile', null);
+  };
 
-  await $api.auth.post(formData, 'signup', {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const formData = new FormData();
+  formData.append('signupDto', new Blob([JSON.stringify(signupData)], { type: 'application/json' }));
+  formData.append('imgFile', profileImageFile);
+
+  await $api.auth.post(formData, 'signup');
 
   // 성공
-  router.push('/login');
+  router.replace('/login');
+};
+
+const changeFile = event => {
+  const {
+    target: { files },
+  } = event;
+
+  // 이전값 삭제
+  if (previewUrl.value) {
+    URL.revokeObjectURL(previewUrl.value);
+    previewUrl.value = '';
+  }
+
+  if (profileImageFile) {
+    profileImageFile.value = null;
+  }
+
+  // 다시 추가
+  if (files.length > 0) {
+    profileImageFile = files[0];
+    previewUrl.value = URL.createObjectURL(profileImageFile);
+  }
+};
+
+const clickUpload = () => {
+  profileImageRef.value.click();
 };
 
 // 비밀번호 입력값 감시하여 helper text와 valid 상태 변경
@@ -255,28 +292,34 @@ watch(password, newVal => {
     return;
   }
 
-  // 일치할 때
+  // 패스
   isValidPassword.value = true;
   helperPassword.value = '';
+
+  // 추가 검사
+  if (newVal !== confirmPassword.value) {
+    isValidConfirmPassword.value = false;
+    helperConfirmPassword.value = '두 비밀번호가 다릅니다.';
+  }
 });
 
 // 비밀번호 확인 입력값 감시하여 helper text와 valid 상태 변경
-watch(checkPassword, newVal => {
+watch(confirmPassword, newVal => {
   if (!newVal) {
-    isValidCheckPassword.value = null;
-    helperCheckPassword.value = '';
+    isValidConfirmPassword.value = null;
+    helperConfirmPassword.value = '';
     return;
   }
 
   if (password.value !== newVal) {
-    isValidCheckPassword.value = false;
-    helperCheckPassword.value = '두 비밀번호가 다릅니다.';
+    isValidConfirmPassword.value = false;
+    helperConfirmPassword.value = '두 비밀번호가 다릅니다.';
     return;
   }
 
   // 통과
-  isValidCheckPassword.value = true;
-  helperCheckPassword.value = '';
+  isValidConfirmPassword.value = true;
+  helperConfirmPassword.value = '';
 });
 
 // 아이디 입력값 감시하여 helper text와 valid 상태 변경
@@ -328,6 +371,21 @@ watch(nickname, newVal => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
+
+  .profile-image,
+  .area-empty-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid darkgray;
+  }
+
+  .profile-image {
+    object-fit: cover;
+  }
 }
 
 .input-group {

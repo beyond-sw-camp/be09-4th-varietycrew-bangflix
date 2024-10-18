@@ -1,6 +1,6 @@
 <template>
-  <FormPageLayout title="리뷰 작성">
-    <div class="mb-xl">테마명: {{ themeName }}</div>
+  <FormPageLayout title="리뷰 작성" @click-save="clickSaveReview">
+    <div class="mb-xl">[테마] {{ themeName }}</div>
 
     <div class="flex flex-col items-center mb-xl">
       <h3 class="mb-s">이번 방탈출은 어떠셨나요? 만족도를 평가해주세요!</h3>
@@ -81,8 +81,8 @@
 
 <script setup>
 import FormPageLayout from '@/components/layouts/FormPageLayout.vue';
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { onMounted, ref, watchEffect } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import InputNumber from 'primevue/inputnumber';
 import SelectButtonWithLabel from '@/components/form/SelectButtonWithLabel.vue';
 import FloatLabel from 'primevue/floatlabel';
@@ -96,9 +96,13 @@ import {
   interiorOptions,
   probabilityOptions,
 } from '@/utils/constants';
+import { $api } from '@/services/api/api';
+import useToastMessage from '@/hooks/useToastMessage';
 
 const route = useRoute();
 const { themeId } = route.params;
+const { showWarning } = useToastMessage();
+const router = useRouter();
 
 const themeName = ref('');
 const totalScore = ref(null);
@@ -141,9 +145,90 @@ const onChangeFiles = newFiles => {
   currentFiles.value = newFiles;
 };
 
-onMounted(() => {
-  // TODO:: themeId 테마 정보 조회
-  themeName.value = '검은 조직';
+const clickSaveReview = () => {
+  if (!totalScore.value) {
+    showWarning('전체 만족도를 선택해주세요!');
+    return;
+  }
+
+  if (!peopleNum.value) {
+    showWarning('참가인원을 입력해주세요!');
+    return;
+  }
+
+  if (!time.value) {
+    showWarning('소요시간을 입력해주세요!');
+    return;
+  }
+
+  if (!quizQuality.value.value) {
+    showWarning('[문제 구성]을 입력해주세요!');
+    return;
+  }
+
+  if (!level.value.value) {
+    showWarning('[체감 난이도]를 입력해주세요!');
+    return;
+  }
+
+  if (!scary.value.value) {
+    showWarning('[체감 공포도]를 입력해주세요!');
+    return;
+  }
+
+  if (!activity.value.value) {
+    showWarning('[체감 활동성]을 입력해주세요!');
+    return;
+  }
+
+  if (!interior.value.value) {
+    showWarning('[인테리어]를 입력해주세요!');
+    return;
+  }
+
+  if (!probability.value.value) {
+    showWarning('[개연성]을 입력해주세요!');
+    return;
+  }
+
+  if (!reviewContent.value) {
+    showWarning('리뷰 내용을 입력해주세요!');
+    return;
+  }
+
+  const formData = new FormData();
+  const reviewData = {
+    themeCode: themeId,
+    headcount: peopleNum.value,
+    takenTime: time.value,
+    totalScore: totalScore.value,
+    composition: quizQuality.value.value,
+    level: level.value.value,
+    horrorLevel: scary.value.value,
+    activity: activity.value.value,
+    interior: interior.value.value,
+    probability: probability.value.value,
+    content: reviewContent.value,
+  };
+  formData.append('review', new Blob([JSON.stringify(reviewData)], { type: 'application/json' }));
+
+  // 리뷰 사진
+  currentFiles.value.forEach(file => {
+    formData.append('images', file);
+  });
+
+  $api.review.post(formData).then(() => {
+    router.replace(`/theme/detail/${themeId}`);
+  });
+};
+
+// 테마명 조회
+watchEffect(() => {
+  if (!themeId) return;
+
+  $api.theme.getTheme(themeId).then(theme => {
+    themeName.value = theme.name;
+  });
 });
 </script>
 

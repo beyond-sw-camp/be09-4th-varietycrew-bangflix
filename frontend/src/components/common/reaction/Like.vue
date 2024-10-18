@@ -6,7 +6,7 @@
     <template v-else>
       <i class="pi pi-heart" @click="handleActivate" />
     </template>
-    <div class="count">{{ props.like.count }}</div>
+    <div class="count">{{ props.count }}</div>
   </div>
 </template>
 
@@ -16,20 +16,24 @@ import { ref, defineProps } from 'vue';
 const liked = ref(false);
 
 const props = defineProps({
-  like: {
-    type: Object,
-    requred: true,
-  },
+  // like: {
+  //   type: Object,
+  //   requred: true,
+  // },
   //     like: {
   //       liked: false,
   //       count: 8,
   //     },
+  count: {
+    type: Number,
+    required: true,
+  },
 });
-if (props.like.liked) {
-  liked.value = true;
-} else if (props.like.liked) {
-  liked.value = false;
-}
+// if (props.like.liked) {
+//   liked.value = true;
+// } else if (props.like.liked) {
+//   liked.value = false;
+// }
 
 // 좋아요
 const handleActivate = () => {

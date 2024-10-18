@@ -1,7 +1,7 @@
 <template>
   <div class="scrap-container">
     <i class="pi pi-hammer" @click="handleActivate" />
-    <div class="count">{{ props.scrap.count }}</div>
+    <div class="count">{{ props.count }}</div>
   </div>
 </template>
 
@@ -13,20 +13,24 @@ const { showSuccess, showError } = useToastMessage();
 const scraped = ref(false);
 
 const props = defineProps({
-  scrap: {
-    type: Object,
-    requred: true,
-  },
+  // scrap: {
+  //   type: Object,
+  //   requred: true,
+  // },
   //     scrap: {
   //       scraped: true,
   //       count: 9,
   //     },
+  count: {
+    type: Number,
+    required: true,
+  },
 });
-if (props.scrap.scraped) {
-  scraped.value = true;
-} else if (props.scrap.scraped) {
-  scraped.value = false;
-}
+// if (props.scrap.scraped) {
+//   scraped.value = true;
+// } else if (props.scrap.scraped) {
+//   scraped.value = false;
+// }
 
 // 스크랩
 const handleActivate = () => {

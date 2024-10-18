@@ -46,7 +46,7 @@
     <div>
       <AppTypography type="title3" class="mb-s">테마 목록</AppTypography>
       <div class="list-store-theme">
-        <EventCard v-for="theme in themeList" :key="theme.id" :card="theme" next-page="THEME" />
+        <ThemeCard v-for="theme in themeList" :key="theme.id" :theme="theme" next-page="THEME" />
       </div>
     </div>
   </PageLayout>
@@ -57,7 +57,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AppTypography from '@/components/AppTypography.vue';
 import PageLayout from '@/components/layouts/PageLayout.vue';
 import ReviewItem from '@/components/review/ReviewItem.vue';
-import EventCard from '@/components/cards/EventCard.vue';
+import ThemeCard from '@/components/cards/ThemeCard.vue';
 
 const storeName = ref('');
 const storeAddress = ref('');

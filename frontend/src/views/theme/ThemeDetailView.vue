@@ -1,30 +1,26 @@
 <template>
+  <PageLoadingLayout v-if="!themeDetail" />
   <PageLayout
-    title="테마: 검은 조직"
+    v-else
+    :title="`[테마] ${themeDetail.name}`"
     btn-role="ALL"
     btn-txt="나도 리뷰 작성할래요!"
     class="container-theme-detail"
-    @click-btn="goReviewForm"
+    @click-btn="goReviewForm(themeDetail.themeCode)"
   >
     <!-- 매장 -->
-    <Button label="방플릭스 신촌점" text icon="pi pi-home" class="mb-s" @click="clickStore" />
+    <Button
+      :label="themeDetail.storeName"
+      text
+      icon="pi pi-home"
+      class="mb-s"
+      @click="clickStore(themeDetail.storeCode)"
+    />
 
     <div class="flex-row gap-20 mb-l items-start">
       <div>
         <!-- 테마 이미지 -->
-        <Galleria
-          :value="themeImages"
-          :circular="true"
-          container-style="width: 440px; flex-shrink: 0; margin-bottom: 16px;"
-          :show-item-navigators="true"
-        >
-          <template #item="slotProps">
-            <img :src="slotProps.item.src" :alt="slotProps.item.alt" style="width: 100%; display: block" />
-          </template>
-          <template #thumbnail="slotProps">
-            <img :src="slotProps.item.src" :alt="slotProps.item.alt" style="display: block; width: 100px" />
-          </template>
-        </Galleria>
+        <Image :src="themeDetail.posterImage" image-style="width: 440px; flex-shrink: 0; margin-bottom: 16px;" />
 
         <!-- 좋아요/스크랩 -->
         <div class="flex-row gap-10">
@@ -32,64 +28,64 @@
             label="좋아요"
             :icon="`pi ${userLiked ? 'pi-heart-fill' : 'pi-heart'}`"
             outlined
-            badge="1,000"
-            @click="toggleLike"
+            :badge="themeDetail.likeCount.toString()"
+            @click="clickLike(themeDetail.themeCode)"
           />
           <Button
             label="스크랩"
             :icon="`pi ${userBookmarked ? 'pi-bookmark-fill' : 'pi-bookmark'}`"
             outlined
-            badge="2,102"
-            @click="toggleBookmark"
+            :badge="themeDetail.scrapCount.toString()"
+            @click="clickScrap(themeDetail.themeCode)"
           />
         </div>
       </div>
 
-      <div class="grow-1">
-        <!-- 테마 상세 정보 -->
-        <Panel header="테마 상세 정보" class="area-theme-desc mb-s">
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
-            dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex
-            ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat
-            nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit
-            anim id est laborum.
-          </p>
-        </Panel>
-
-        <!-- 리뷰 통계 -->
-        <Panel header="" class="area-review-statistics">
-          <div class="top">
-            <div>
-              <h3 class="mb-s">평균 만족도</h3>
-              <h1>4.11 / 5</h1>
-            </div>
-            <Divider layout="vertical" />
-            <div>
-              <ReviewStatisticsItem :data="totalScoreStatisticsData" />
-            </div>
-          </div>
-
-          <Divider />
-
-          <div class="bottom">
-            <ReviewStatisticsItem label="문제구성" :data="quizQualityStatisticsData" />
-            <ReviewStatisticsItem label="난이도" :data="levelStatisticsData" />
-            <ReviewStatisticsItem label="공포도" :data="scaryStatisticsData" />
-            <ReviewStatisticsItem label="활동성" :data="activityStatisticsData" />
-            <ReviewStatisticsItem label="인테리어" :data="interiorStatisticsData" />
-            <ReviewStatisticsItem label="개연성" :data="probabilityStatisticsData" />
-          </div>
-        </Panel>
-      </div>
+      <!-- 테마 상세 정보 -->
+      <Panel header="" class="grow-1">
+        <p class="mb-xl">
+          {{ themeDetail.story }}
+        </p>
+        <p>난이도: {{ themeDetail.level }}</p>
+        <p>1인당 가격: {{ themeDetail.price.toLocaleString() }}원</p>
+        <p>제한시간: {{ themeDetail.timeLimit }}분</p>
+      </Panel>
     </div>
+
+    <!-- 리뷰 통계 -->
+    <Fieldset legend="리뷰 통계" class="area-review-statistics">
+      <div v-if="!reviewStatistics">아직 리뷰가 없어요! 리뷰를 작성해주세요</div>
+      <div v-else>
+        <div class="top">
+          <div>
+            <h3 class="mb-s">평균 만족도</h3>
+            <h1>{{ reviewStatistics.avgTotalScore }} / 5</h1>
+          </div>
+          <Divider layout="vertical" />
+          <div>
+            <ReviewStatisticsItem :data="totalScoreStatisticsData" />
+          </div>
+        </div>
+
+        <Divider />
+
+        <div class="bottom">
+          <ReviewStatisticsItem label="문제구성" :data="quizQualityStatisticsData" />
+          <ReviewStatisticsItem label="난이도" :data="levelStatisticsData" />
+          <ReviewStatisticsItem label="공포도" :data="scaryStatisticsData" />
+          <ReviewStatisticsItem label="활동성" :data="activityStatisticsData" />
+          <ReviewStatisticsItem label="인테리어" :data="interiorStatisticsData" />
+          <ReviewStatisticsItem label="개연성" :data="probabilityStatisticsData" />
+        </div>
+      </div>
+    </Fieldset>
 
     <!-- 리뷰 -->
     <section>
       <div class="flex-row content-between mb-m">
         <div class="flex-row gap-10 items-end">
           <h3>참가자 리뷰</h3>
-          <span>(123)</span>
+          <span>({{ reviews.length }})</span>
         </div>
 
         <Select
@@ -109,10 +105,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import PageLayout from '@/components/layouts/PageLayout.vue';
-import Galleria from 'primevue/galleria';
 import Panel from 'primevue/panel';
 import Divider from 'primevue/divider';
 import Select from 'primevue/select';
@@ -127,106 +122,222 @@ import {
 } from '@/utils/constants';
 import ReviewStatisticsItem from '@/components/review/ReviewStatisticsItem.vue';
 import ReviewList from '@/components/review/ReviewList.vue';
+import { $api } from '@/services/api/api';
+import PageLoadingLayout from '@/components/layouts/PageLoadingLayout.vue';
+import Image from 'primevue/image';
+import Fieldset from 'primevue/fieldset';
 
 const router = useRouter();
 const route = useRoute();
 const { themeId } = route.params;
 
-const themeImages = ref([]);
+const themeDetail = ref(null);
 const totalScoreStatisticsData = ref([
-  { label: '1점', percent: 1 },
+  { label: '1점', value: 'ONE', percent: 1 },
   { label: '2점', percent: 2 },
   { label: '3점', percent: 10 },
   { label: '4점', percent: 25 },
   { label: '5점', percent: 62 },
 ]);
-const quizQualityStatisticsData = ref(quizQualityOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const levelStatisticsData = ref(levelOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const scaryStatisticsData = ref(scaryOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const activityStatisticsData = ref(activityOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const interiorStatisticsData = ref(interiorOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const probabilityStatisticsData = ref(probabilityOptions.map((e, i) => ({ ...e, percent: 10 * (i + 1) })));
-const selectedReviewSorting = ref({ name: '최신 순', value: 'RECENT' });
+const quizQualityStatisticsData = ref([]);
+const levelStatisticsData = ref([]);
+const scaryStatisticsData = ref([]);
+const activityStatisticsData = ref([]);
+const interiorStatisticsData = ref([]);
+const probabilityStatisticsData = ref([]);
+const selectedReviewSorting = ref({ name: '최신 순', value: '' });
 const reviewSortingOptions = ref([
-  { name: '최신 순', value: 'RECENT' },
-  { name: '만족도 높은 순', value: 'SCORE_DESC' },
-  { name: '만족도 낮은 순', value: 'SCORE_ASC' },
+  { name: '최신 순', value: '' },
+  { name: '만족도 높은 순', value: 'highScore' },
+  { name: '만족도 낮은 순', value: 'lowScore' },
 ]);
-const reviews = ref([
-  {
-    reviewCode: 1,
-    nickname: '홍길동',
-    profileImageUrl: 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png',
-    createdAt: '2024.10.10 22:00',
-    userGenres: '범죄, 공포, 스릴러',
-    title: '여기 검은 조직은 진짜 미침',
-    desc: '인생 어쩌구 저쩌구 리뷰 이벤트 해서 엠오유가 어쩌구 저쩌구 인테리어가 진짜 내가 방탈출하는 사람이 된거같고 어쩌구 저쩌구 몰입도가 어쩌구 저쩌구 총쏘면 진짜 총 맞는게 단점이고 어쩌구 저쩌구인생 어쩌구 저쩌구 리뷰 이벤트 해서 엠오유가 어쩌구 저쩌구 인테',
-    images: [
-      'https://primefaces.org/cdn/primevue/images/card-vue.jpg',
-      'https://primefaces.org/cdn/primevue/images/card-vue.jpg',
-    ],
-    likeCnt: 100,
-    totalScore: 5,
-    time: 60,
-    people: 2,
-    level: 'ONE',
-    quizQuality: 'TWO',
-    scary: 'TWO',
-    activity: 'THREE',
-    interior: 'FIVE',
-    probability: 'FIVE',
-  },
-  {
-    reviewCode: 2,
-    nickname: '프로방탈출러',
-    profileImageUrl: 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png',
-    createdAt: '2024.10.10 22:00',
-    userGenres: '범죄, 스릴러',
-    title: '여기 검은 조직은 진짜 미침',
-    desc: '인생 어쩌구 저쩌구 리뷰 이벤트 해서 엠오유가 어쩌구 저쩌구 인테리어가 진짜 내가 방탈출하는 사람이 된거같고 어쩌구 저쩌구 몰입도가 어쩌구 저쩌구 총쏘면 진짜 총 맞는게 단점이고 어쩌구 저쩌구인생 어쩌구 저쩌구 리뷰 이벤트 해서 엠오유가 어쩌구 저쩌구 인테',
-    images: [],
-    likeCnt: 10,
-    totalScore: 4,
-    time: 60,
-    people: 2,
-    level: 'ONE',
-    quizQuality: 'TWO',
-    scary: 'TWO',
-    activity: 'THREE',
-    interior: 'FIVE',
-    probability: 'FIVE',
-  },
-]);
+const reviews = ref([]);
 const userLiked = ref(true);
 const userBookmarked = ref(false);
+const reviewStatistics = ref(null);
+const currenReviewPage = 0;
 
-const goReviewForm = () => {
-  router.push(`/theme/${themeId}/create-review`);
+const totalScoreOptions = [
+  { label: '1점', value: 'ONE' },
+  { label: '2점', value: 'TWO' },
+  { label: '3점', value: 'THREE' },
+  { label: '4점', value: 'FOUR' },
+  { label: '5점', value: 'FIVE' },
+];
+
+const goReviewForm = themeCode => {
+  router.push(`/theme/${themeCode}/create-review`);
 };
 
-const toggleLike = () => {
-  userLiked.value = !userLiked.value;
+const clickLike = themeCode => {
+  $api.theme.setReactions('like', true, themeCode).then(() => {});
 };
 
-const toggleBookmark = () => {
-  userBookmarked.value = !userBookmarked.value;
+const clickScrap = themeCode => {
+  $api.theme.setReactions('scrap', true, themeCode).then(() => {});
 };
 
-const clickStore = () => {
-  router.push('/store/detail/1');
+const clickStore = storeCode => {
+  router.push(`/store/detail/${storeCode}`);
 };
 
-onMounted(() => {
-  themeImages.value = [
-    { src: 'https://primefaces.org/cdn/primevue/images/galleria/galleria1.jpg', alt: '' },
-    { src: 'https://primefaces.org/cdn/primevue/images/galleria/galleria2.jpg', alt: '' },
-    { src: 'https://primefaces.org/cdn/primevue/images/galleria/galleria3.jpg', alt: '' },
-    { src: 'https://primefaces.org/cdn/primevue/images/galleria/galleria4.jpg', alt: '' },
-    { src: 'https://primefaces.org/cdn/primevue/images/galleria/galleria5.jpg', alt: '' },
-  ];
+const mappingStatistics = (options, one, two, three, four, five) => {
+  return options.map(e => {
+    let percent = 0;
 
-  userLiked.value = false;
-  userBookmarked.value = true;
+    if (e.value === 'ONE') {
+      percent = one;
+    } else if (e.value === 'TWO') {
+      percent = two;
+    } else if (e.value === 'THREE') {
+      percent = three;
+    } else if (e.value === 'FOUR') {
+      percent = four;
+    } else if (e.value === 'FIVE') {
+      percent = five;
+    }
+    return { ...e, percent };
+  });
+};
+
+// 테마코드로 조회
+watchEffect(() => {
+  if (!themeId) return;
+
+  // 테마 정보 조회
+  $api.theme.getTheme(themeId).then(theme => {
+    themeDetail.value = theme;
+  });
+
+  // 리뷰 통계 조회
+  $api.review.getStatisticsByThemeCode(themeId).then(statistics => {
+    reviewStatistics.value = statistics;
+
+    const {
+      oneCompositionPercent,
+      twoCompositionPercent,
+      threeCompositionPercent,
+      fourCompositionPercent,
+      fiveCompositionPercent,
+
+      oneLevelPercent,
+      twoLevelPercent,
+      threeLevelPercent,
+      fourLevelPercent,
+      fiveLevelPercent,
+
+      oneHorrorLevelPercent,
+      twoHorrorLevelPercent,
+      threeHorrorLevelPercent,
+      fourHorrorLevelPercent,
+      fiveHorrorLevelPercent,
+
+      oneActivePercent,
+      twoActivePercent,
+      threeActivePercent,
+      fourActivePercent,
+      fiveActivePercent,
+
+      oneInteriorPercent,
+      twoInteriorPercent,
+      threeInteriorPercent,
+      fourInteriorPercent,
+      fiveInteriorPercent,
+
+      oneProbabilityPercent,
+      twoProbabilityPercent,
+      threeProbabilityPercent,
+      fourProbabilityPercent,
+      fiveProbabilityPercent,
+
+      oneScorePercent,
+      twoScorePercent,
+      threeScorePercent,
+      fourScorePercent,
+      fiveScorePercent,
+    } = statistics;
+
+    // 문제구성
+    quizQualityStatisticsData.value = mappingStatistics(
+      quizQualityOptions,
+      oneCompositionPercent,
+      twoCompositionPercent,
+      threeCompositionPercent,
+      fourCompositionPercent,
+      fiveCompositionPercent,
+    );
+
+    // 난이도
+    levelStatisticsData.value = mappingStatistics(
+      levelOptions,
+      oneLevelPercent,
+      twoLevelPercent,
+      threeLevelPercent,
+      fourLevelPercent,
+      fiveLevelPercent,
+    );
+
+    // 공포도
+    scaryStatisticsData.value = mappingStatistics(
+      scaryOptions,
+      oneHorrorLevelPercent,
+      twoHorrorLevelPercent,
+      threeHorrorLevelPercent,
+      fourHorrorLevelPercent,
+      fiveHorrorLevelPercent,
+    );
+
+    // 활동성
+    activityStatisticsData.value = mappingStatistics(
+      activityOptions,
+      oneActivePercent,
+      twoActivePercent,
+      threeActivePercent,
+      fourActivePercent,
+      fiveActivePercent,
+    );
+
+    // 인테리어
+    interiorStatisticsData.value = mappingStatistics(
+      interiorOptions,
+      oneInteriorPercent,
+      twoInteriorPercent,
+      threeInteriorPercent,
+      fourInteriorPercent,
+      fiveInteriorPercent,
+    );
+
+    // 개연성
+    probabilityStatisticsData.value = mappingStatistics(
+      probabilityOptions,
+      oneProbabilityPercent,
+      twoProbabilityPercent,
+      threeProbabilityPercent,
+      fourProbabilityPercent,
+      fiveProbabilityPercent,
+    );
+
+    totalScoreStatisticsData.value = mappingStatistics(
+      totalScoreOptions,
+      oneScorePercent,
+      twoScorePercent,
+      threeScorePercent,
+      fourScorePercent,
+      fiveScorePercent,
+    );
+  });
+
+  // 리뷰 목록 조회
+  $api.review.getReviewsByThemeCode(themeId).then(themeReviews => {
+    reviews.value = themeReviews;
+  });
+});
+
+watch(selectedReviewSorting, newVal => {
+  // 리뷰 목록 조회
+  $api.review.getReviewsByThemeCode(themeId, currenReviewPage, newVal.value).then(themeReviews => {
+    reviews.value = themeReviews;
+  });
 });
 </script>
 
@@ -236,6 +347,7 @@ onMounted(() => {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+    margin-bottom: 32px;
 
     .top {
       display: grid;

@@ -1,24 +1,40 @@
 <template>
-  <div>
-    <Button label="일반 유저 로그인" @click="login()" />
-    <Button label="관리자 로그인" severity="secondary" @click="loginByAdmin()" />
+  <div class="login-container">
+    <!-- <Button label="일반 유저 로그인" @click="login()" />
+    <Button label="관리자 로그인" severity="secondary" @click="loginByAdmin()" /> -->
 
-    <div class="login-container">
-      <div class="login-box">
-        <h2>로그인</h2>
-        <form @submit.prevent="login">
-          <div>
-            <label for="id">아이디</label>
-            <InputText id="id" v-model="id" type="text" placeholder="아이디를 입력하세요" />
-          </div>
-          <div>
-            <label for="password">비밀번호</label>
-            <InputText id="password" v-model="password" type="password" placeholder="비밀번호를 입력하세요" />
-          </div>
-        </form>
-        <Button label="일반 유저 로그인" @click="login()" />
-        <div class="signup-link">계정이 없으신가요? <a @click="goToSignup">회원가입하기</a></div>
-      </div>
+    <div class="login-box">
+      <h2 class="mb-l">로그인</h2>
+      <form class="mb-l" @submit.prevent="login">
+        <div class="mb-s">
+          <label for="login-id">아이디</label>
+          <InputText
+            id="login-id"
+            v-model="id"
+            type="text"
+            placeholder="아이디를 입력하세요"
+            aria-describedby="helper-id"
+            fluid
+          />
+          <small v-if="helperId" id="helper-id">{{ helperId }}</small>
+        </div>
+
+        <div>
+          <label for="password">비밀번호</label>
+          <Password
+            id="password"
+            v-model="password"
+            placeholder="비밀번호를 입력하세요"
+            aria-describedby="helper-password"
+            :feedback="false"
+            fluid
+          />
+          <small v-if="helperPassword" id="helper-password">{{ helperPassword }}</small>
+        </div>
+      </form>
+
+      <Button label="로그인" fluid @click="login" />
+      <div class="signup-link">계정이 없으신가요? <a href="/register">회원가입하기</a></div>
     </div>
   </div>
 </template>
@@ -26,21 +42,37 @@
 <script setup>
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { useUserStore } from '@/stores/user';
 import { useRouter } from 'vue-router';
 import { $api } from '@/services/api/api';
+import Password from 'primevue/password';
 
 const userStore = useUserStore();
 const router = useRouter();
+
 const id = ref('');
 const password = ref('');
+const helperId = ref('');
+const helperPassword = ref('');
 
 const goHome = () => {
   router.replace('/');
 };
 
 const login = async () => {
+  if (!id.value || !password.value) {
+    if (!id.value) {
+      helperId.value = '아이디를 입력해주세요';
+    }
+
+    if (!password.value) {
+      helperPassword.value = '비밀번호를 입력해주세요';
+    }
+
+    return;
+  }
+
   // 기존의 정보 만료
   userStore.logout();
 
@@ -57,7 +89,7 @@ const login = async () => {
   userStore.saveTokens(userTokens);
 
   // 회원 정보 가져오기
-  const userInfo = await $api.user.getAll();
+  const userInfo = await $api.user.get('info');
 
   // userStore에 유저 정보 저장
   userStore.saveUserInfo(userInfo);
@@ -70,9 +102,13 @@ const loginByAdmin = () => {
   goHome();
 };
 
-const goToSignup = () => {
-  router.push('/register');
-};
+watch(id, () => {
+  helperId.value = '';
+});
+
+watch(password, () => {
+  helperPassword.value = '';
+});
 </script>
 
 <style scoped>
@@ -80,39 +116,31 @@ const goToSignup = () => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80vh;
+  height: 100%;
   background-color: #ffffff;
 }
 
 .login-box {
-  width: 300px;
-  height: 500px;
+  width: 500px;
   padding: 20px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  display: center;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 form {
   display: flex;
   flex-direction: column;
-}
 
-label {
-  margin-bottom: 5px;
-}
+  label {
+    margin-bottom: 5px;
+    display: block;
+  }
 
-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  small {
+    color: red;
+  }
 }
 
 #login {
