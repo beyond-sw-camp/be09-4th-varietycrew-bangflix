@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb-deploy
+spec:
+  selector:
+    matchLabels:
+      app: mariadb-kube
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: mariadb-kube
+    spec:
+      containers:
+        - name: mariadb-prod-container
+          image: rlfgks/bangflix-mariadb:latest
+          imagePullPolicy: Always
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpassword
+          ports:
+            - containerPort: 3306

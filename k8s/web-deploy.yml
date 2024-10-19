@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deploy
+spec:
+  selector:
+    matchLabels:
+      app: web-server-kube
+  template:
+    metadata:
+      labels:
+        app: web-server-kube
+    spec:
+      containers:
+      - name: nginx-prod-container
+        image: rlfgks/bangflix-web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80

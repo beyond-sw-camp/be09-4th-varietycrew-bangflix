@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-kube
+  template:
+    metadata:
+      labels:
+        app: redis-kube
+    spec:
+      containers:
+      - name: redis-prod-container
+        image: rlfgks/bangflix-redis:latest
+        ports:
+        - containerPort: 6379
