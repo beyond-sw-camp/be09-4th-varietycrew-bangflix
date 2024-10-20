@@ -126,7 +126,7 @@ resource "kubernetes_deployment" "springboot_deploy" {
   }
 
   spec {
-    replicas = 2
+    replicas = 3
 
     selector {
       match_labels = {
