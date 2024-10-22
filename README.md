@@ -225,8 +225,10 @@
 <br>
 
 ### CI/CD 시연
-![CICD시연](https://github.com/user-attachments/assets/6dc0089a-3ce5-4d6d-b4fe-909ae488f196)
+![CICD 시연](https://github.com/user-attachments/assets/cbdca88d-5697-406f-8508-ecbbcfc33709)
 
+
+<br>
 
 ## CI/CD 아키텍쳐
 ![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
