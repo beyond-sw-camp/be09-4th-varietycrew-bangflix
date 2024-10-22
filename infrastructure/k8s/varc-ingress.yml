@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: varc-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /()(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: web-service
+            port: 
+              number: 8000
+      - path: /server(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: springboot-service
+            port: 
+              number: 8001
