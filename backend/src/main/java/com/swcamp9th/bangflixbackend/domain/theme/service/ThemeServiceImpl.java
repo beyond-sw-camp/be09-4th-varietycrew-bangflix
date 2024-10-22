@@ -21,6 +21,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -186,7 +188,7 @@ public class ThemeServiceImpl implements ThemeService {
         Member member = userRepository.findById(userId).orElseThrow();
         Theme theme = themeRepository.findById(themeReactionDTO.getThemeCode()).orElseThrow();
         ThemeReaction themeReaction = themeReactionRepository.findByIds(
-            themeReactionDTO.getThemeCode(), member.getMemberCode());
+            themeReactionDTO.getThemeCode(), member.getMemberCode()).orElse(null);
 
         if(themeReaction == null){
             themeReaction = new ThemeReaction();
@@ -228,7 +230,7 @@ public class ThemeServiceImpl implements ThemeService {
     public void deleteThemeReaction(String loginId, ThemeReactionDTO themeReactionDTO) {
         Member member = userRepository.findById(loginId).orElseThrow();
         ThemeReaction themeReaction = themeReactionRepository.findByIds(
-            themeReactionDTO.getThemeCode(), member.getMemberCode());
+            themeReactionDTO.getThemeCode(), member.getMemberCode()).orElse(null);
 
         if(themeReaction != null) {
             if (themeReactionDTO.getReaction().equals("like")) {
@@ -339,6 +341,27 @@ public class ThemeServiceImpl implements ThemeService {
             genreNames, null, null);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<ThemeDTO> getScrapedTheme(String loginId) {
+        Integer memberCode = userRepository.findById(loginId).orElseThrow(() -> new EntityNotFoundException("존재하지 않는 유저입니다."))
+                .getMemberCode();
+        List<ThemeReaction> themeReactions = themeReactionRepository.findThemeByMemberCode(memberCode);
+
+        List<Theme> themes = themeRepository.findByThemeCodes(
+                themeReactions.stream().map(
+                        ThemeReaction::getThemeCode
+                ).toList()
+        );
+
+        return themes.stream().map(
+                theme -> createThemeDTO(theme, memberCode)
+        ).toList();
+
+    }
+
+
+
     private ThemeDTO createThemeDTO(Theme theme, Integer memberCode) {
         ThemeDTO themeDto = modelMapper.map(theme, ThemeDTO.class);
         themeDto.setStoreCode(theme.getStore().getStoreCode());
@@ -348,7 +371,7 @@ public class ThemeServiceImpl implements ThemeService {
         themeDto.setStoreName(theme.getStore().getName());
 
         if(memberCode != null){
-            ThemeReaction themeReaction = themeReactionRepository.findByIds(theme.getThemeCode(), memberCode);
+            ThemeReaction themeReaction = themeReactionRepository.findByIds(theme.getThemeCode(), memberCode).orElse(null);
 
             if(themeReaction != null){
                 themeDto.setIsLike(true);
@@ -379,7 +402,7 @@ public class ThemeServiceImpl implements ThemeService {
             themeDto.setStoreName(theme.getStore().getName());
 
             if(memberCode != null){
-                ThemeReaction themeReaction = themeReactionRepository.findByIds(theme.getThemeCode(), memberCode);
+                ThemeReaction themeReaction = themeReactionRepository.findByIds(theme.getThemeCode(), memberCode).orElse(null);
 
                 if(themeReaction != null){
                     themeDto.setIsLike(true);

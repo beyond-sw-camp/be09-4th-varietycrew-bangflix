@@ -19,7 +19,8 @@ public class GlobalExceptionHandler {
         AlreadyLikedException.class,
         LikeNotFoundException.class,
         DuplicateException.class,
-        InvalidEmailCodeException.class
+        InvalidEmailCodeException.class,
+        LoginException.class,
     })
     public ResponseEntity<ResponseMessage<Object>> handleBadRequestException(Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -29,7 +30,6 @@ public class GlobalExceptionHandler {
     // 401: 지정한 리소스에 대한 권한이 없다
     @ExceptionHandler({
         InvalidUserException.class,
-        LoginException.class,
         ExpiredTokenExcepiton.class,
         JwtException.class
     })
@@ -38,20 +38,20 @@ public class GlobalExceptionHandler {
             .body(new ResponseMessage<>(401, e.getMessage(), null));
     }
 
-    // 500: 내부 서버 에러
-    @ExceptionHandler({
-        MailSendException.class,
-        RedisException.class,
-        IOException.class,
-        NullPointerException.class,
-        IllegalArgumentException.class,
-        IndexOutOfBoundsException.class,
-        UnsupportedOperationException.class,
-        IllegalStateException.class,
-        ArithmeticException.class
-    })
-    public ResponseEntity<ResponseMessage<Object>> handleInternalServerErrorException(Exception e) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ResponseMessage<>(500, e.getMessage(), null));
-    }
+//    // 500: 내부 서버 에러
+//    @ExceptionHandler({
+//        MailSendException.class,
+//        RedisException.class,
+//        IOException.class,
+//        NullPointerException.class,
+//        IllegalArgumentException.class,
+//        IndexOutOfBoundsException.class,
+//        UnsupportedOperationException.class,
+//        IllegalStateException.class,
+//        ArithmeticException.class
+//    })
+//    public ResponseEntity<ResponseMessage<Object>> handleInternalServerErrorException(Exception e) {
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                .body(new ResponseMessage<>(500, e.getMessage(), null));
+//    }
 }

@@ -1,11 +1,14 @@
 package com.swcamp9th.bangflixbackend.domain.theme.repository;
 
 import com.swcamp9th.bangflixbackend.domain.review.entity.Review;
+import com.swcamp9th.bangflixbackend.domain.theme.dto.ThemeDTO;
 import com.swcamp9th.bangflixbackend.domain.theme.entity.Genre;
 import com.swcamp9th.bangflixbackend.domain.theme.entity.Theme;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
+import com.swcamp9th.bangflixbackend.domain.theme.entity.ThemeReaction;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -55,7 +58,7 @@ public interface ThemeRepository extends JpaRepository<Theme, Integer> {
         + "INNER JOIN ThemeReaction tr ON t.themeCode = tr.themeCode "
         + "WHERE tr.createdAt > :oneWeekAgo AND tr.active = true AND t.active = true "
         + "GROUP BY t.themeCode "
-        + "ORDER BY COUNT(tr) DESC, t.createdAt DESC")
+        + "ORDER BY COUNT(tr) DESC, t.themeCode DESC")
     List<Theme> findByWeekOrderByLikes(@Param("oneWeekAgo") LocalDateTime oneWeekAgo, Pageable pageable);
 
     @Query("SELECT tg.genreCode FROM ThemeGenre tg "
@@ -63,5 +66,6 @@ public interface ThemeRepository extends JpaRepository<Theme, Integer> {
         + "WHERE tg.themeCode IN :themeCodes")
     List<Integer> findGenresByThemeCode(@Param("themeCodes") List<Integer> themeCodes);
 
-
+    @Query("SELECT t FROM Theme t WHERE t.themeCode IN :themeCodes ORDER BY t.createdAt DESC")
+    List<Theme> findByThemeCodes(@Param("themeCodes") List<Integer> themeCodes);
 }

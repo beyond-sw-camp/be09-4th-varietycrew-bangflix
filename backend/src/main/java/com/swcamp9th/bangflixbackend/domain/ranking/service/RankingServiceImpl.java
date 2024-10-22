@@ -82,17 +82,27 @@ public class RankingServiceImpl implements RankingService {
     @Override
     @Transactional
     public ReviewRankingDateDTO findReviewRankingDate(Integer year) {
-        return ReviewRankingDateDTO.builder().ReviewRankingDates(reviewRankingRepository.findDistinctDatesByYear(year)).build();
+        List<String> dates = reviewRankingRepository.findDistinctDatesByYear(year).orElse(null);
+
+        if (dates == null || dates.isEmpty())
+            return null;
+        else
+            return ReviewRankingDateDTO.builder().ReviewRankingDates(dates).build();
+
     }
 
     @Override
     @Transactional
-    public List<ReviewRankingDTO> findReviewRanking(String date) {
+    public List<ReviewRankingDTO> findReviewRanking(String date, String loginId) {
 
         if(date == null)
             date = findReviewRankingDate(LocalDateTime.now().getYear()).getReviewRankingDates().get(0);
 
-        List<ReviewRanking> reviewRankings = reviewRankingRepository.findReviewByCreatedAtDate(date);
+        Member member = userRepository.findById(loginId).orElseThrow();
+        List<ReviewRanking> reviewRankings = reviewRankingRepository.findReviewByCreatedAtDate(date).orElse(null);
+
+        if(reviewRankings == null || reviewRankings.isEmpty())
+            return null;
 
         List<Review> reviews = reviewRankings.stream()
             .map(rankingReview -> {
@@ -101,7 +111,7 @@ public class RankingServiceImpl implements RankingService {
                 }
             ).toList();
 
-        List<ReviewDTO> reviewDTOS = reviewService.getReviewDTOS(reviews);
+        List<ReviewDTO> reviewDTOS = reviewService.getReviewDTOS(reviews, member.getMemberCode());
 
         String finalDate = date;
 
@@ -114,8 +124,9 @@ public class RankingServiceImpl implements RankingService {
 
     @Override
     @Transactional
-    public List<ReviewDTO> findAllReviewRanking(Pageable pageable) {
+    public List<ReviewDTO> findAllReviewRanking(Pageable pageable, String loginId) {
 
+        Member member = userRepository.findById(loginId).orElseThrow();
         Page<ReviewLike> reviewLikes = reviewLikeRepository.findReviewByReviewLikes(pageable);
 
         List<Review> reviews = reviewLikes.stream()
@@ -125,7 +136,7 @@ public class RankingServiceImpl implements RankingService {
                 }
             ).toList();
 
-        return reviewService.getReviewDTOS(reviews);
+        return reviewService.getReviewDTOS(reviews, member.getMemberCode());
     }
 
     @Override

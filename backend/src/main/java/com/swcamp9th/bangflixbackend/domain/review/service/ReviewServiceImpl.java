@@ -163,11 +163,11 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public List<ReviewDTO> findReviewsWithFilters(Integer themeCode, String filter, Pageable pageable) {
+    public List<ReviewDTO> findReviewsWithFilters(Integer themeCode, String filter, Pageable pageable, String loginId) {
 
         // 테마 코드로 리뷰를 모두 조회
         List<Review> reviews = reviewRepository.findByThemeCodeAndActiveTrueWithFetchJoin(themeCode, pageable);
-
+        Member member = userRepository.findById(loginId).orElse(null);
         // 필터가 있을 경우 해당 조건에 맞게 정렬
         if (filter != null) {
             switch (filter) {
@@ -195,12 +195,15 @@ public class ReviewServiceImpl implements ReviewService {
             reviews.sort(Comparator.comparing(Review::getCreatedAt).reversed());
         }
 
-        return getReviewDTOS(reviews);
+        if(member != null)
+            return getReviewDTOS(reviews, member.getMemberCode());
+        else
+            return getReviewDTOS(reviews, null);
     }
 
     @Override
     @Transactional
-    public List<ReviewDTO> getReviewDTOS(List<Review> sublist) {
+    public List<ReviewDTO> getReviewDTOS(List<Review> sublist, Integer memberCode) {
         List<ReviewDTO> result = sublist.stream()
             .map(review -> {
                 ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
@@ -213,6 +216,15 @@ public class ReviewServiceImpl implements ReviewService {
                 reviewDTO.setMemberCode(review.getMember().getMemberCode());
                 reviewDTO.setMemberImage(review.getMember().getImage());
                 List<String> genres = findMemberTendencyGenre(review.getMember().getMemberCode());
+                reviewDTO.setThemeCode(review.getTheme().getThemeCode());
+                reviewDTO.setThemeImage(review.getTheme().getPosterImage());
+                reviewDTO.setThemeName(review.getTheme().getName());
+                ReviewLike reviewLike = reviewLikeRepository.findByReviewCodeAndMemberCode(review.getReviewCode(), memberCode).orElse(null);
+
+                if (reviewLike != null)
+                    reviewDTO.setIsLike(true);
+                else
+                    reviewDTO.setIsLike(false);
 
                 if(!genres.isEmpty())
                     reviewDTO.setGenres(genres);
@@ -225,7 +237,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewDTO getReviewDTO(Review review) {
+    public ReviewDTO getReviewDTO(Review review, Integer memberCode) {
 
         ReviewDTO reviewDTO = modelMapper.map(review, ReviewDTO.class);
 
@@ -237,6 +249,16 @@ public class ReviewServiceImpl implements ReviewService {
         reviewDTO.setMemberCode(review.getMember().getMemberCode());
         reviewDTO.setMemberImage(review.getMember().getImage());
         List<String> genres = findMemberTendencyGenre(review.getMember().getMemberCode());
+        reviewDTO.setThemeCode(review.getTheme().getThemeCode());
+        reviewDTO.setThemeImage(review.getTheme().getPosterImage());
+        reviewDTO.setThemeName(review.getTheme().getName());
+
+        ReviewLike reviewLike = reviewLikeRepository.findByReviewCodeAndMemberCode(review.getReviewCode(), memberCode).orElse(null);
+
+        if (reviewLike != null)
+            reviewDTO.setIsLike(true);
+        else
+            reviewDTO.setIsLike(false);
 
         if(!genres.isEmpty())
             reviewDTO.setGenres(genres);
@@ -248,7 +270,11 @@ public class ReviewServiceImpl implements ReviewService {
     @Transactional
     public ReviewReportDTO findReviewReposrt(String loginId) {
         Member member = userRepository.findById(loginId).orElseThrow();
-        int avgScore = reviewRepository.findAvgScoreByMemberCode(member.getMemberCode());
+        Integer avgScore = reviewRepository.findAvgScoreByMemberCode(member.getMemberCode());
+
+        if(avgScore == null)
+            return null;
+
         Pageable pageable = PageRequest.of(0, 3);
         List<String> genres = reviewRepository.findTopGenresByMemberCode(member.getMemberCode(), pageable);
         ReviewReportDTO reviewReportDTO = new ReviewReportDTO(avgScore, genres);
@@ -260,7 +286,22 @@ public class ReviewServiceImpl implements ReviewService {
     public List<ReviewDTO> findReviewByMember(String loginId, Pageable pageable) {
         Member member = userRepository.findById(loginId).orElseThrow();
         List<Review> review = reviewRepository.findByMemberCode(member.getMemberCode(), pageable);
-        return getReviewDTOS(review);
+
+        if(review == null || review.isEmpty())
+            return null;
+        return getReviewDTOS(review, member.getMemberCode());
+    }
+
+    @Override
+    @Transactional
+    public ReviewDTO findReviewDetail(String loginId, Integer reviewCode) {
+        Member member = userRepository.findById(loginId).orElseThrow();
+        Review review = reviewRepository.findById(reviewCode).orElseThrow();
+
+        if(!review.getMember().getMemberCode().equals(member.getMemberCode()))
+            throw new InvalidUserException("리뷰 수정 권한이 없습니다");
+
+        return getReviewDTO(review, member.getMemberCode());
     }
 
     @Override

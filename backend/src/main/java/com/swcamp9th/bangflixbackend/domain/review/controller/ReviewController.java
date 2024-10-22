@@ -87,7 +87,8 @@ public class ReviewController {
     public ResponseEntity<ResponseMessage<List<ReviewDTO>>> findReviewList(
         @PathVariable("themeCode") Integer themeCode,
         @PageableDefault(size = 10, page = 0) Pageable pageable,
-        @RequestParam(required = false) String filter) {
+        @RequestParam(required = false) String filter,
+        @RequestAttribute("loginId") String loginId) {
         /*
             필터 값은 필수 X.
             필터 값이 없다면 기본 최신순 리뷰 정렬
@@ -99,7 +100,7 @@ public class ReviewController {
         */
 
         // 서비스에서 필터를 사용해 조회
-        List<ReviewDTO> reviews = reviewService.findReviewsWithFilters(themeCode, filter, pageable);
+        List<ReviewDTO> reviews = reviewService.findReviewsWithFilters(themeCode, filter, pageable, loginId);
 
         return ResponseEntity.ok(new ResponseMessage<>(200, "리뷰 조회 성공", reviews));
     }
@@ -163,5 +164,19 @@ public class ReviewController {
         List<ReviewDTO> reviews = reviewService.findReviewByMember(loginId, pageable);
 
         return ResponseEntity.ok(new ResponseMessage<>(200, "유저가 작성한 리뷰 조회 성공", reviews));
+    }
+
+    @GetMapping("/detail")
+    @SecurityRequirement(name = "Authorization")
+    @Operation(summary = "하나의 리뷰에 대해 조회하는 API.")
+    public ResponseEntity<ResponseMessage<ReviewDTO>> findReviewDetail(
+        @RequestAttribute("loginId") String loginId,
+        @RequestParam Integer reviewCode
+    ) {
+
+        // 서비스에서 필터를 사용해 조회
+        ReviewDTO reviewDTO = reviewService.findReviewDetail(loginId, reviewCode);
+
+        return ResponseEntity.ok(new ResponseMessage<>(200, "하나의 리뷰에 대해 조회 성공", reviewDTO));
     }
 }
