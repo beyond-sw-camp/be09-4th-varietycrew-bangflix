@@ -225,8 +225,7 @@
 <br>
 
 ### CI/CD 시연
-![CICD 시연](https://github.com/user-attachments/assets/cbdca88d-5697-406f-8508-ecbbcfc33709)
-
+![화면비 1920](https://github.com/user-attachments/assets/35cb0544-adef-48ee-b687-e52152f1ddfd)
 
 <br>
 
