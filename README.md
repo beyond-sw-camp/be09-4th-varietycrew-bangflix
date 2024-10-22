@@ -4,25 +4,34 @@
 
 
 ## 팀원
-- 노다민
-- 양현진
-- 용길한
-- 장호정
-- 정준서
-
+* 노다민
+* 양현진
+* 용길한
+* 장호정
+* 정준서
 
 ## 기술 스택
-Front-end: <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"> <img src="https://img.shields.io/badge/vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white">
- <img src="https://img.shields.io/badge/vite-646CFF?style=for-the-badge&logo=vite&logoColor=white"> <img src="https://img.shields.io/badge/primevue-41B883?style=for-the-badge&logo=primevue&logoColor=white">
-<br>
-Back-end: <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
- Spring Data JPA, Spring Security, <img src="https://img.shields.io/badge/mariaDB-003545?style=for-the-badge&logo=mariaDB&logoColor=white">
-, Redis, jwt, SMTP, Swagger
+#### Front-end
+|JS|Vue & Vite|PrimeVue|Fetch API|
+|:--:|:--:|:--:|:--:|
+|<img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">|<img src="https://img.shields.io/badge/vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white"><img src="https://img.shields.io/badge/vite-646CFF?style=for-the-badge&logo=vite&logoColor=white">|<img src="https://img.shields.io/badge/primevue-41B883?style=for-the-badge&logo=primevue&logoColor=white">|API 통신|
 
+#### Back-end
+|Java & Spring Boot|Spring Data JPA|Spring Security & JWT|MariaDB|Redis|SMTP|SWAGGER|GRADLE|
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">|<img src="https://img.shields.io/badge/springdatajpa-6DB33F?style=for-the-badge&logo=spring&logoColor=white">| <img src="https://img.shields.io/badge/springsecurity-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white"> <img src="https://img.shields.io/badge/jsonwebtokens-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white">| <img src="https://img.shields.io/badge/mariaDB-003545?style=for-the-badge&logo=mariaDB&logoColor=white">| <img src="https://img.shields.io/badge/redis-FF4438?style=for-the-badge&logo=redis&logoColor=white">| in 이메일 인증 | <img src="https://img.shields.io/badge/swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=white"> | <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white"> |
+
+#### CI/CD
+|Docker|K8S|Jenkins|Ngrok|Terraform|Ingress|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+| <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"> | <img src="https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white"> | <img src="https://img.shields.io/badge/jenkins-%232C5263.svg?style=for-the-badge&logo=jenkins&logoColor=white"> | <img src="https://img.shields.io/badge/ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=white"> | <img src="https://img.shields.io/badge/terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white"> | <img src="https://img.shields.io/badge/ingress-783CBD?style=for-the-badge&logo=ingress&logoColor=white">|
 
 
 ## 개발 도구
-VSCode, Intelij, Docker, Kubernetes, Jenkins
+|VSCode|IntelliJ|Figma|Slack|GitHub|
+|:--:|:--:|:--:|:--:|:--:|
+|<img src="https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white"> | <img src="https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white"> | <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white"> | <img src="https://img.shields.io/badge/slack-4A154B?style=for-the-badge&logo=slack&logoColor=white"> | <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">|
+
 
 
 ## 프로젝트 소개
