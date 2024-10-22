@@ -1,15 +1,15 @@
 <template>
   <PageLayout title="게시글 상세보기">
     <div class="board-detail-container">
-      <Card v-if="boardDetail">
+      <Card v-if="post">
         <template #header>
           <div class="card-header-container">
             <div class="start">
-              <Avatar :image="boardDetail.profileImage" class="profile-image" size="large" shape="circle" />
-              <div class="profile-nickname">{{ boardDetail.writer }}</div>
+              <Avatar :image="Helper.getImageUrl(post.profile)" class="profile-image" size="large" shape="circle" />
+              <div class="profile-nickname">{{ post.nickname }}</div>
             </div>
             <div class="end">
-              <div class="created-at">{{ boardDetail.createdAt }}</div>
+              <div class="created-at">{{ Helper.Date.formatDateTime(post.createdAt) }}</div>
               <i class="pi pi-exclamation-triangle" @click="handleReport"> 신고하기</i>
               <div class="button-overlay">
                 <Button type="button" icon="pi pi-ellipsis-v" @click="toggle" />
@@ -18,26 +18,28 @@
             </div>
           </div>
         </template>
-        <template #title>{{ boardDetail.title }}</template>
+        <template #title>{{ post.title }}</template>
         <template #content>
           <div class="content-container">
-            <div class="content">{{ boardDetail.content }}</div>
+            <div class="content">{{ post.content }}</div>
             <div class="content-image-container">
-              <template v-if="boardDetail.images">
-                <template v-for="(image, index) in boardDetail.images" :key="index">
-                  <img :src="image" alt="보드 이미지" class="content-image" />
+              <template v-if="post.imageUrls && post.imageUrls.length">
+                <template v-for="(image, index) in post.imageUrls" :key="index">
+                  <img :src="Helper.getImageUrl(image)" alt="보드 이미지" class="content-image" />
                 </template>
               </template>
             </div>
           </div>
           <div class="content-footer">
-            <div class="like">
-              <i class="pi pi-heart"></i>
-              <div class="emoji">{{ boardDetail.like }}</div>
-            </div>
+            <ReviewLike
+              :is-user-like="post.isLike"
+              :count="countLikes.likeCount"
+              @handle-active="toggleLike"
+              @handle-deactivate="toggleLike"
+            />
             <div class="comment">
               <i class="pi pi-comment"></i>
-              <div class="emoji">{{ boardDetail.comment }}</div>
+              <div class="emoji">{{ countComments.commentCount }}</div>
             </div>
           </div>
           <Divider type="solid" />
@@ -45,12 +47,17 @@
         <template #footer>
           <div class="comment-container">
             <div class="input-comment-container">
-              <Textarea v-model="inputComment" class="input-comment" placeholder="여기에 댓글 작성" />
-              <Button class="enter-comment">작성</Button>
+              <Textarea v-model="inputComment.content" class="input-comment" placeholder="여기에 댓글 작성" />
+              <Button class="enter-comment" @click="submitComment">작성</Button>
             </div>
-            <template v-if="boardDetail.comments">
-              <template v-for="comment in boardDetail.comments" :key="comment.id">
-                <Comment :comment="comment" :is-admin="isAdmin" :is-writer="isWriter" />
+            <template v-if="comments && comments.length">
+              <template v-for="comment in comments" :key="comment.commentCode">
+                <Comment
+                  :comments="comment"
+                  :is-admin="isAdmin"
+                  :is-writer="isWriter"
+                  @on-reload-comments="fetchComments"
+                />
               </template>
             </template>
           </div>
@@ -60,6 +67,8 @@
       <template v-else> 게시글이 존재하지 않습니다.</template>
     </div>
   </PageLayout>
+
+  <ConfirmDialog></ConfirmDialog>
 </template>
 
 <script setup>
@@ -67,50 +76,80 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import useToastMessage from '@/hooks/useToastMessage';
 import Comment from '@/components/common/Comment.vue';
+import { $api } from '@/services/api/api';
+import { Helper } from '@/utils/Helper';
+import { useUserStore } from '@/stores/user';
+import ReviewLike from '@/components/common/reaction/ReviewLike.vue';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 const route = useRoute();
+const userStore = useUserStore();
 const { showSuccess, showWarning } = useToastMessage();
 
+const post = ref(null);
 const boardId = ref(route.params.boardId);
 const isSubscribed = ref(true);
 const isWriter = ref(true);
-const isAdmin = ref(true);
+const isAdmin = ref(false);
+const comments = ref([]);
 
-const inputComment = ref('');
-const menu = ref();
-const boardDetail = ref({
-  id: boardId,
-  profileImage: 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png',
-  writer: '닉네임',
-
-  title: '제목',
-  content:
-    '내용 오늘 다녀온 따끈따끈한 방탈출 리뷰 남겨보겠습니다. 총 인원은...3명이었구요! 어쩌구 저쩌구 어쩌구 저쩌구 어쩌구 어쩌구 어쩌구 저쩌구 어쩌구 저쩌구 어쩌구 저쩌구 어쩌구 어쩌구 ......이러쿵 저러쿵',
-  images: [
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-  ],
-  like: 0,
-  comment: 0,
-  comments: [
-    {
-      id: 0,
-      writer: '홍길동1',
-      profileImage: 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png',
-      comment: '저도 이번에 여기 다녀왔는데 저한텐 흙길 ㅠ1',
-      createdAt: '오후 8:33',
-    },
-    {
-      id: 1,
-      writer: '홍길동2',
-      profileImage: 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png',
-      comment: '저도 이번에 여기 다녀왔는데 저한텐 흙길 ㅠ2',
-      createdAt: '오후 8:33',
-    },
-  ],
-  createdAt: '오후 8:33',
+const countLikes = ref({
+  communityPostCode: boardId.value,
+  likeCount: 0,
 });
+
+const countComments = ref({
+  communityPostCode: boardId.value,
+  commentCount: 0,
+});
+
+const inputComment = ref({
+  content: '',
+});
+
+const fetchPostDetail = async () => {
+  post.value = await $api.community.getPostDetailByPostCode(boardId.value);
+  // console.log(post.value.nickname);
+};
+
+const fetchComments = async () => {
+  const response = await $api.community.getCommentsByPostCode(boardId.value);
+  comments.value = response.map(comment => ({
+    commentCode: comment.commentCode,
+    nickname: comment.nickname,
+    content: comment.content,
+    createdAt: Helper.Date.formatDateTime(comment.createdAt),
+    profile: comment.profile,
+    communityPostCode: comment.communityPostCode,
+  }));
+  // console.log(comments.value);
+};
+
+const fetchLikeCount = async () => {
+  // console.log(props.post.communityPostCode);
+  const response = await $api.postLike.getLikeCount(boardId.value);
+  countLikes.value = response;
+};
+
+const fetchCommentCount = async () => {
+  const response = await $api.community.getCommentCount(boardId.value);
+  countComments.value = response;
+};
+
+// 댓글 작성 API 호출
+const submitComment = async () => {
+  if (!inputComment.value.content) {
+    showWarning('댓글을 작성해주세요.'); // 댓글 내용이 없을 경우 경고
+    return;
+  }
+
+  await $api.community.submitComment(boardId.value, { content: inputComment.value.content });
+  showSuccess('댓글이 작성되었습니다.');
+  fetchComments(); // 댓글 목록 새로 고침
+  inputComment.value = '';
+};
+
+const menu = ref();
 
 const menuItems = ref([]);
 
@@ -174,8 +213,19 @@ const handleSubscribe = () => {
   console.log('status: ', isSubscribed.value);
 };
 
+const toggleLike = () => {
+  $api.postLike.toggleLike(boardId.value).then(() => {
+    fetchLikeCount(); // 좋아요 개수 새로고침
+    fetchPostDetail(); // isLike 새로고침
+  });
+};
+
 onMounted(() => {
   setMenuItems();
+  fetchPostDetail();
+  fetchComments();
+  fetchLikeCount();
+  fetchCommentCount();
 });
 </script>
 
@@ -236,6 +286,8 @@ onMounted(() => {
 .content-footer {
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
 }
 .like {
   display: flex;

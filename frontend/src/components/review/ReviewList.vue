@@ -1,7 +1,14 @@
 <template>
   <ul class="review-list">
-    <li v-for="review in props.reviews" :key="review.reviewCode">
-      <ReviewItem :review="review" @click-image="clickImage" @click-report="clickReport" />
+    <li v-for="(review, index) in props.reviews" :key="review.reviewCode">
+      <ReviewItem
+        :review="review"
+        :rank="props.showRanking ? index + 1 : null"
+        :show-theme="props.showTheme"
+        @click-image="clickImage"
+        @click-report="clickReport"
+        @on-removed-my-review="emit('onRemovedMyReview')"
+      />
     </li>
   </ul>
 
@@ -19,7 +26,7 @@
     :show-indicators-on-item="true"
   >
     <template #item="slotProps">
-      <img :src="slotProps.item" style="width: 100%; display: block" />
+      <img :src="Helper.getImageUrl(slotProps.item)" style="width: 100%; display: block" />
     </template>
   </Galleria>
 
@@ -52,13 +59,25 @@ import RadioButton from 'primevue/radiobutton';
 import Button from 'primevue/button';
 import ReviewItem from './ReviewItem.vue';
 import AppTypography from '../AppTypography.vue';
+import { Helper } from '@/utils/Helper';
 
 const props = defineProps({
   reviews: {
     type: Array, // ReviewDTO[]
     required: true,
   },
+  showRanking: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  showTheme: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
 });
+const emit = defineEmits(['onRemovedMyReview']);
 
 const displayBigImage = ref(false);
 const bigImages = ref([]);

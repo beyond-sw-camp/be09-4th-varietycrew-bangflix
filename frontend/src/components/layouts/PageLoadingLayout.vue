@@ -1,13 +1,11 @@
 <template>
   <div class="page-loading-layout">
-    <ProgressSpinner />
-    <AppTypography color="darkgray">페이지를 가져오는 중입니다...</AppTypography>
+    <LoadingView />
   </div>
 </template>
 
 <script setup>
-import ProgressSpinner from 'primevue/progressspinner';
-import AppTypography from '../AppTypography.vue';
+import LoadingView from '../common/LoadingView.vue';
 </script>
 
 <style scoped>

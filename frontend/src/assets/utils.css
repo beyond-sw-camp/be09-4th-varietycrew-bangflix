@@ -79,3 +79,41 @@
 .mb-xl {
     margin-bottom: 48px;
 }
+
+.mt-xxs {
+    margin-top: 4px;
+}
+.mt-xs {
+    margin-top: 8px;
+}
+.mt-s {
+    margin-top: 16px;
+}
+.mt-m {
+    margin-top: 24px;
+}
+.mt-l {
+    margin-top: 32px;
+}
+.mt-xl {
+    margin-top: 48px;
+}
+
+.mr-xxs {
+    margin-right: 4px;
+}
+.mr-xs {
+    margin-right: 8px;
+}
+.mr-s {
+    margin-right: 16px;
+}
+.mr-m {
+    margin-right: 24px;
+}
+.mr-l {
+    margin-right: 32px;
+}
+.mr-xl {
+    margin-right: 48px;
+}

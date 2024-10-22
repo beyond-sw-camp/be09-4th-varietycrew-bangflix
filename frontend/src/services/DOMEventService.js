@@ -41,4 +41,19 @@ export default class DOMEventService {
   static dispatchApiSuccess(successMsg) {
     this.#dispatchEvent('onApiSuccess', successMsg);
   }
+
+  /**
+   * CustomEvent: onExpiredToken
+   */
+  static subscribeExpiredToken(listener) {
+    this.#subscribe('onExpiredToken', listener);
+  }
+
+  static unsubscribeExpiredToken(listener) {
+    this.#unsubscribe('onExpiredToken', listener);
+  }
+
+  static dispatchExpiredToken() {
+    this.#dispatchEvent('onExpiredToken');
+  }
 }

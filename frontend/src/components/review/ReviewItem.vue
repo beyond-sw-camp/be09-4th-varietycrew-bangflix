@@ -1,61 +1,94 @@
 <template>
   <div class="container-review-item">
     <!-- 메달 (in 베스트 리뷰) -->
-    <!-- <Image
-      v-if="props.review.rank === 1"
+    <Image
+      v-if="props.rank === 1"
       src="/src/assets/icons/medal-gold.png"
       class="item-medal"
       image-style="width: 50px"
     />
     <Image
-      v-else-if="props.review.rank === 2"
+      v-else-if="props.rank === 2"
       src="/src/assets/icons/medal-silver.png"
       class="item-medal"
       image-style="width: 50px"
     />
     <Image
-      v-else-if="props.review.rank === 3"
+      v-else-if="props.rank === 3"
       src="/src/assets/icons/medal-bronze.png"
       class="item-medal"
       image-style="width: 50px"
-    /> -->
+    />
 
     <div class="area-review flex-row">
       <!-- 왼쪽 부분 -->
-      <div class="grow-1">
-        <div class="flex-row items-center content-between mb-m">
-          <div class="flex-row gap-10 items-center">
-            <Avatar :image="props.review.memberImage" size="large" shape="circle" />
-            <AppTypography type="body1" color="darkgray">{{ props.review.memberNickname }}</AppTypography>
-            <AppTypography type="body2" color="gray">{{ props.review.createdAt }}</AppTypography>
-            <!-- <AppTypography type="body2" color="gray">선호 장르: {{ props.review.genres.join(',') }}</AppTypography> -->
+      <div class="grow-1 area-left">
+        <div>
+          <div class="flex-row items-center content-between mb-m">
+            <div class="flex-row gap-10 items-center">
+              <UserAvatar :image-path="props.review.memberImage" />
+              <AppTypography type="body1" color="darkgray">{{ props.review.memberNickname }}</AppTypography>
+              <AppTypography type="body2" color="gray">{{
+                Helper.Date.formatDateTime(props.review.createdAt)
+              }}</AppTypography>
+              <!-- <AppTypography type="body2" color="gray">선호 장르: {{ props.review.genres.join(',') }}</AppTypography> -->
+            </div>
+
+            <div>
+              <template v-if="props.review.memberNickname === userStore.nickname">
+                <!-- <Button label="수정" size="small" severity="secondary" class="mr-xxs" @click="editReview" /> -->
+                <Button label="삭제" size="small" severity="secondary" @click="clickRemoveMyReview" />
+              </template>
+
+              <!-- <Button
+              label="신고하기"
+              outlined
+              icon="pi pi-ban"
+              size="small"
+              severity="danger"
+              @click="emit('clickReport', $event)"
+            /> -->
+            </div>
           </div>
 
-          <Button
-            label="신고하기"
-            outlined
-            icon="pi pi-ban"
-            size="small"
-            severity="danger"
-            @click="emit('clickReport', $event)"
-          />
+          <div class="flex-row gap-10 mb-s">
+            <AppTypography type="body1" class="grow-1">{{ props.review.content }}</AppTypography>
+
+            <!-- 이미지 있는 경우 표시 -->
+            <img
+              v-if="props.review.imagePaths.length > 0"
+              :src="`${Helper.getImageUrl(props.review.imagePaths[0])}`"
+              width="150"
+              height="150"
+              @click="emit('clickImage', props.review.imagePaths)"
+            />
+          </div>
         </div>
 
-        <div class="flex-row gap-10 mb-s">
-          <AppTypography type="body1" class="grow-1">{{ props.review.content }}</AppTypography>
+        <div>
+          <!-- 테마 정보 -->
+          <div v-if="props.showTheme" class="area-theme mb-xxs">
+            <Image :src="Helper.getImageUrl(props.review.themeImage)" width="50" />
+            <div>
+              <AppTypography type="title3" class="mb-xxs">테마: {{ props.review.themeName }}</AppTypography>
+              <Button
+                label="테마 상세"
+                size="small"
+                severity="secondary"
+                as="router-link"
+                :to="`/theme/detail/${props.review.themeCode}`"
+              />
+            </div>
+          </div>
 
-          <!-- 이미지 있는 경우 표시 -->
-          <img
-            v-if="props.review.imagePaths.length > 0"
-            :src="`http://localhost:8080${props.review.imagePaths[0]}`"
-            width="150"
-            height="150"
-            @click="emit('clickImage', props.review.imagePaths)"
+          <!-- 좋아요 버튼 -->
+          <ReviewLike
+            :is-user-like="reviewUserLike"
+            :count="reviewCount"
+            @handle-deactivate="handleDeactivate"
+            @handle-active="handleActive"
           />
         </div>
-
-        <!-- 좋아요 버튼 -->
-        <!-- <Like :like="{ liked: false, count: props.review.likeCnt }" /> -->
       </div>
 
       <!-- 구분선 -->
@@ -80,65 +113,87 @@
         </div>
       </div>
     </div>
-
-    <!-- 테마/매장 정보 -->
-    <!-- <div v-if="props.showTheme && props.review.theme" class="area-store">
-      <div class="square"></div>
-      <div class="store">
-        <AppTypography class="mb-xs">테마: {{ props.review.theme.title }}</AppTypography>
-        <AppTypography type="caption" color="darkgray">{{ props.review.theme.storeName }}</AppTypography>
-      </div>
-    </div> -->
   </div>
 </template>
 
 <script setup>
-import { defineProps } from 'vue';
-import Avatar from 'primevue/avatar';
+import { defineProps, ref, watchEffect } from 'vue';
 import Divider from 'primevue/divider';
 import Button from 'primevue/button';
 import Image from 'primevue/image';
 import AppTypography from '@/components/AppTypography.vue';
 import ReviewTag from '@/components/review/ReviewTag.vue';
-import Like from '@/components/common/reaction/Like.vue';
+import ReviewLike from '@/components/common/reaction/ReviewLike.vue';
+import { Helper } from '@/utils/Helper';
+import { $api } from '@/services/api/api';
+import UserAvatar from '../common/UserAvatar.vue';
+import { useUserStore } from '@/stores/user';
+import { useConfirm } from 'primevue/useconfirm';
 
 const props = defineProps({
   review: {
-    type: Object,
-    /* 
-    {
-        reviewCode: 1,
-        nickname: "홍길동",
-        profileImageUrl: "http://",
-        createdAt: "2024.10.10 22:00",
-        userGenres: "범죄, 공포, 스릴러",
-        title: "리뷰 제목",
-        desc: "리뷰 내용",
-        images: [
-            "http://image.url",
-            "http://image.url"
-        ],
-        likeCnt: 10,
-        totalScore: 5,
-        time: 70,
-        people: 2,
-        level: 'ONE',
-        quizQuality: 'TWO',
-        scary: 'TWO',
-        activity: 'THREE',
-        interior: 'FIVE',
-        probability: 'FIVE'
-    }
-     */
+    type: Object, // ReviewDTO
     required: true,
   },
   showTheme: {
     type: Boolean,
     required: false,
   },
+  rank: {
+    type: Number,
+    required: false,
+    default: null,
+  },
 });
 
-const emit = defineEmits(['clickImage', 'clickReport']);
+const emit = defineEmits(['clickImage', 'clickReport', 'onRemovedMyReview']);
+const userStore = useUserStore();
+const confirm = useConfirm();
+
+const reviewCount = ref(0);
+const reviewUserLike = ref(false);
+
+const handleActive = () => {
+  $api.review.activeLike(props.review.reviewCode).then(() => {
+    reviewCount.value += 1;
+    reviewUserLike.value = true;
+  });
+};
+
+const handleDeactivate = () => {
+  $api.review.deactivateLike(props.review.reviewCode).then(() => {
+    reviewCount.value -= 1;
+    reviewUserLike.value = false;
+  });
+};
+
+const removeMyReview = () => {
+  $api.review.removeMyReview(props.review.reviewCode).then(() => {
+    emit('onRemovedMyReview');
+  });
+};
+
+const clickRemoveMyReview = () => {
+  confirm.require({
+    message: '이 테마에 작성한 내 리뷰를 삭제할까요?',
+    header: '리뷰 삭제',
+    rejectProps: {
+      label: '취소',
+      severity: 'secondary',
+      outlined: true,
+    },
+    acceptProps: {
+      label: '리뷰 삭제',
+      severity: 'danger',
+    },
+    accept: removeMyReview,
+  });
+};
+
+watchEffect(() => {
+  reviewCount.value = props.review.likes;
+  reviewUserLike.value = props.review.isLike;
+});
 </script>
 
 <style scoped>
@@ -158,6 +213,13 @@ const emit = defineEmits(['clickImage', 'clickReport']);
     .area-right {
       width: 390px;
     }
+
+    .area-left {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+    }
   }
 
   .item-medal {
@@ -166,10 +228,10 @@ const emit = defineEmits(['clickImage', 'clickReport']);
     left: -25px;
   }
 
-  .area-store {
-    padding: 16px;
+  .area-theme {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    gap: 10px;
 
     .square {
       width: 20px;

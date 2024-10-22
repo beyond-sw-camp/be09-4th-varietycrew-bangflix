@@ -1,4 +1,9 @@
+import { useUserStore } from '@/stores/user';
 import { createRouter, createWebHistory } from 'vue-router';
+
+// meta: { requiresAuth: true }, // 인증이 필요한 페이지
+// meta: { requiresAdmin: true }, // 관리자 권한이 필요한 페이지
+// meta: { guestOnly: true }, // 로그인한 사용자는 접근할 수 없는 페이지
 
 const router = createRouter({
   history: createWebHistory(),
@@ -22,6 +27,10 @@ const router = createRouter({
     {
       path: '/theme/:themeId/create-review',
       component: () => import('@/views/theme/ThemeReviewFormView.vue'),
+    },
+    {
+      path: '/theme/for-you',
+      component: () => import('@/views/theme/ThemeForYouView.vue'),
     },
     {
       path: '/board',
@@ -88,6 +97,11 @@ const router = createRouter({
     {
       path: '/mypage',
       component: () => import('@/views/MyPageView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/member/detail/:memberId',
+      component: () => import('@/views/MyPageView.vue'),
     },
     {
       path: '/dm',
@@ -114,6 +128,30 @@ const router = createRouter({
       component: () => import('@/views/store/StoreDetailView.vue'),
     },
   ],
+});
+
+// 라우터 가드 설정
+router.beforeEach((to, from, next) => {
+  const userStore = useUserStore();
+
+  // 인증이 필요한 페이지인지 확인
+  if (to.meta.requiresAuth && !userStore.accessToken) {
+    // 인증되지 않은 사용자일 경우 로그인 페이지로 리다이렉트
+    next('/login');
+  }
+
+  // 로그인이 완료된 유저라면
+  if (to.meta.guestOnly && userStore.accessToken) {
+    next('/');
+  }
+
+  // 관리자 권한이 필요한 페이지인지 확인
+  else if (to.meta.requiresAdmin && (!userStore.accessToken || !userStore.isAdmin)) {
+    // 관리자 권한이 없을 경우 접근 불가
+    next('/');
+  } else {
+    next();
+  }
 });
 
 export default router;

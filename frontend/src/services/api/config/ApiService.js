@@ -1,6 +1,7 @@
 import BaseApiService from '@/services/api/config/BaseApiService';
 import DOMEventService from '@/services/DOMEventService';
 import { useUserStore } from '@/stores/user';
+import TokenRefreshStatus from '@/utils/TokenRefreshStatus';
 
 export default class ApiService extends BaseApiService {
   #userStore;
@@ -10,6 +11,43 @@ export default class ApiService extends BaseApiService {
 
     const userStore = useUserStore();
     this.#userStore = userStore;
+  }
+
+  async #handleTokenExpired(url, options) {
+    // 한 페이지에 여러 request가 동작할 수도 있음 -> 토큰 갱신이 여러번 요청 되는 경우를 막기
+    if (!TokenRefreshStatus.isRefreshing) {
+      TokenRefreshStatus.isRefreshing = true;
+
+      // 토큰 갱신 진행
+      const url = `${this.baseUrl}/v1/auth/refresh`;
+      const refreshToken = this.#userStore.refreshToken;
+      const response = await fetch(url, {
+        method: 'POST',
+        body: { refreshToken },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        // 리프레시 토큰도 만료인 경우
+        DOMEventService.dispatchExpiredToken();
+        return;
+      }
+
+      // 토큰 재셋팅
+      const { status, msg, result } = await response.json();
+      this.#userStore.setToken(result.accessToken);
+
+      // 다시 요청
+      TokenRefreshStatus.requestQueue.forEach(req => this.#callApi(req.url, req.options));
+
+      // clear
+      TokenRefreshStatus.isRefreshing = false;
+      TokenRefreshStatus.requestQueue = [];
+    } else {
+      TokenRefreshStatus.requestQueue.push({ url, options });
+    }
   }
 
   // 요청을 처리하는 부분
@@ -34,15 +72,19 @@ export default class ApiService extends BaseApiService {
       const response = await fetch(url, fetchOptions);
 
       if (!response.ok) {
+        // 토큰이 만료된 경우에는 따로 처리
+        if (response.status === 401) {
+          return this.#handleTokenExpired(url, fetchOptions);
+        }
+
         throw response;
       }
 
       return await response.json();
     } catch (err) {
       // 서버에서 보내주는 에러 메시지 뽑기
-      err.text().then(errResponse => {
-        const errRes = JSON.parse(errResponse);
-        this.handleError(errRes.msg || '알 수 없는 에러 발생');
+      err.json().then(errResponse => {
+        this.handleError(errResponse?.msg || '서버 요청 중 문제가 발생했습니다.');
       });
     }
   }

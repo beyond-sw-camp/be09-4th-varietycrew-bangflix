@@ -14,7 +14,8 @@
       text
       icon="pi pi-home"
       class="mb-s"
-      @click="clickStore(themeDetail.storeCode)"
+      as="router-link"
+      :to="`/store/detail/${themeDetail.storeCode}`"
     />
 
     <div class="flex-row gap-20 mb-l items-start">
@@ -28,15 +29,15 @@
             label="좋아요"
             :icon="`pi ${userLiked ? 'pi-heart-fill' : 'pi-heart'}`"
             outlined
-            :badge="themeDetail.likeCount.toString()"
-            @click="clickLike(themeDetail.themeCode)"
+            :badge="likeCnt.toString()"
+            @click="clickLike(themeDetail.themeCode, !userLiked)"
           />
           <Button
             label="스크랩"
             :icon="`pi ${userBookmarked ? 'pi-bookmark-fill' : 'pi-bookmark'}`"
             outlined
-            :badge="themeDetail.scrapCount.toString()"
-            @click="clickScrap(themeDetail.themeCode)"
+            :badge="scrapCnt.toString()"
+            @click="clickScrap(themeDetail.themeCode, !userBookmarked)"
           />
         </div>
       </div>
@@ -47,8 +48,9 @@
           {{ themeDetail.story }}
         </p>
         <p>난이도: {{ themeDetail.level }}</p>
-        <p>1인당 가격: {{ themeDetail.price.toLocaleString() }}원</p>
         <p>제한시간: {{ themeDetail.timeLimit }}분</p>
+        <p>인원 수: {{ themeDetail.headcount }}</p>
+        <p>1인당 가격: {{ themeDetail.price.toLocaleString() }}원</p>
       </Panel>
     </div>
 
@@ -99,8 +101,9 @@
       </div>
 
       <!-- 리뷰 목록 -->
-      <ReviewList :reviews="reviews" />
+      <ReviewList :reviews="reviews" @on-removed-my-review="getThemeReviews" />
     </section>
+    <ConfirmDialog></ConfirmDialog>
   </PageLayout>
 </template>
 
@@ -126,6 +129,7 @@ import { $api } from '@/services/api/api';
 import PageLoadingLayout from '@/components/layouts/PageLoadingLayout.vue';
 import Image from 'primevue/image';
 import Fieldset from 'primevue/fieldset';
+import ConfirmDialog from 'primevue/confirmdialog';
 
 const router = useRouter();
 const route = useRoute();
@@ -152,8 +156,10 @@ const reviewSortingOptions = ref([
   { name: '만족도 낮은 순', value: 'lowScore' },
 ]);
 const reviews = ref([]);
-const userLiked = ref(true);
-const userBookmarked = ref(false);
+const userLiked = ref(true); // 로그인 한 유저가 좋아요 한 테마인지
+const userBookmarked = ref(false); // 로그인 한 유저가 스크랩 한 테마인지
+const likeCnt = ref(0);
+const scrapCnt = ref(0);
 const reviewStatistics = ref(null);
 const currenReviewPage = 0;
 
@@ -169,16 +175,24 @@ const goReviewForm = themeCode => {
   router.push(`/theme/${themeCode}/create-review`);
 };
 
-const clickLike = themeCode => {
-  $api.theme.setReactions('like', true, themeCode).then(() => {});
+const clickLike = (themeCode, changeTo) => {
+  $api.theme.setReactions('like', changeTo, themeCode).then(() => {
+    // 서버에서 다시 불러오지 않고 클라이언트 메모리에 저장
+    userLiked.value = changeTo;
+
+    if (changeTo) likeCnt.value += 1;
+    else likeCnt.value -= 1;
+  });
 };
 
-const clickScrap = themeCode => {
-  $api.theme.setReactions('scrap', true, themeCode).then(() => {});
-};
+const clickScrap = (themeCode, changeTo) => {
+  $api.theme.setReactions('scrap', changeTo, themeCode).then(() => {
+    // 서버에서 다시 불러오지 않고 클라이언트 메모리에 저장
+    userBookmarked.value = changeTo;
 
-const clickStore = storeCode => {
-  router.push(`/store/detail/${storeCode}`);
+    if (changeTo) scrapCnt.value += 1;
+    else scrapCnt.value -= 1;
+  });
 };
 
 const mappingStatistics = (options, one, two, three, four, five) => {
@@ -200,6 +214,12 @@ const mappingStatistics = (options, one, two, three, four, five) => {
   });
 };
 
+const getThemeReviews = () => {
+  $api.review.getReviewsByThemeCode(themeId).then(themeReviews => {
+    reviews.value = themeReviews;
+  });
+};
+
 // 테마코드로 조회
 watchEffect(() => {
   if (!themeId) return;
@@ -207,11 +227,17 @@ watchEffect(() => {
   // 테마 정보 조회
   $api.theme.getTheme(themeId).then(theme => {
     themeDetail.value = theme;
+    userLiked.value = theme.isLike;
+    userBookmarked.value = theme.isScrap;
+    likeCnt.value = theme.likeCount;
+    scrapCnt.value = theme.scrapCount;
   });
 
   // 리뷰 통계 조회
   $api.review.getStatisticsByThemeCode(themeId).then(statistics => {
     reviewStatistics.value = statistics;
+
+    if (!statistics) return;
 
     const {
       oneCompositionPercent,
@@ -328,9 +354,7 @@ watchEffect(() => {
   });
 
   // 리뷰 목록 조회
-  $api.review.getReviewsByThemeCode(themeId).then(themeReviews => {
-    reviews.value = themeReviews;
-  });
+  getThemeReviews();
 });
 
 watch(selectedReviewSorting, newVal => {

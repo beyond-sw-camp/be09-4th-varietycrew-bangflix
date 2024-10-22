@@ -6,13 +6,13 @@
         <template #content>
           <div class="content-container">
             <div class="content">{{ notice.content }}</div>
-            <div class="content-image-container">
+            <!-- <div class="content-image-container">
               <template v-if="notice.images">
                 <template v-for="(image, index) in notice.images" :key="index">
                   <img :src="image" alt="공지사항 이미지" class="content-image" />
                 </template>
               </template>
-            </div>
+            </div> -->
           </div>
         </template>
       </Card>
@@ -21,31 +21,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import DetailPageLayout from '@/components/layouts/DetailPageLayout.vue';
 import NoticePreviewCard from '@/components/cards/preview/NoticePreviewCard.vue';
 import Card from 'primevue/card';
 import { useConfirm } from 'primevue/useconfirm';
 import useToastMessage from '@/hooks/useToastMessage';
+import { $api } from '@/services/api/api';
+
 const { showSuccess } = useToastMessage();
 
 const route = useRoute();
 const confirm = useConfirm();
 const noticeId = ref(route.params.noticeId);
+const notice = ref({});
 
-const notice = ref({
-  id: noticeId,
-  title: '제목1',
-  content: '안녕하세요. 방플릭스입니다. \n\n이번에 신규 방탈출이 등장해서 소개해드리려고 왔습니다!\n \n...\n\n\n',
-  images: [
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-    'https://github.com/user-attachments/assets/04e68ff8-44ad-4b43-b5f0-9fa1c6704842',
-  ],
-  createdAt: '2024.10.01',
-  writer: '홍길동 관리자',
-});
+const fetchNoticeDetail = async () => {
+  notice.value = await $api.notice.getNoticeDetailByNoticeCode(noticeId.value);
+  console.log(notice.value.title);
+};
+
+onMounted(fetchNoticeDetail);
 
 const handleUpdateNotice = actionType => {
   if (actionType === 'edit') {

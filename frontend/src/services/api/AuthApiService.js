@@ -5,5 +5,11 @@ export default class AuthApiService extends ApiService {
     super('v1/auth');
   }
 
-  //  필요 시 custom method 작성은 여기에
+  sendEmailVerifyCode(email) {
+    return this.post({ email }, 'send-email');
+  }
+
+  verifyEmail(email, code) {
+    return this.post({ email, code }, 'confirm-email');
+  }
 }

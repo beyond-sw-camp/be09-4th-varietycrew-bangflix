@@ -1,5 +1,5 @@
 <template>
-  <div :style="{ color: textColor, fontSize: `${textSize}px`, fontFamily: font }">
+  <div class="app-typography" :style="{ color: textColor, fontSize: `${textSize}px`, fontWeight }">
     <slot></slot>
   </div>
 </template>
@@ -22,14 +22,14 @@ const props = defineProps({
 
 const textColor = ref('#000000');
 const textSize = ref(16);
-const font = ref('NanumGothic');
+const fontWeight = ref(300);
 
 // 텍스트 색상 설정
 watchEffect(() => {
   if (props.color === 'black') {
     textColor.value = '#000000';
   } else if (props.color === 'white') {
-    textColor.value === '#ffffff';
+    textColor.value = '#ffffff';
   } else if (props.color === 'gray') {
     textColor.value = '#b3b3b3';
   } else if (props.color === 'darkgray') {
@@ -41,24 +41,28 @@ watchEffect(() => {
 watchEffect(() => {
   if (props.type === 'caption') {
     textSize.value = 12;
-    font.value = 'NanumGothic';
+    fontWeight.value = 300;
   } else if (props.type === 'body2') {
     textSize.value = 14;
-    font.value = 'NanumGothic';
+    fontWeight.value = 300;
   } else if (props.type === 'body1') {
     textSize.value = 16;
-    font.value = 'NanumGothic';
+    fontWeight.value = 300;
   } else if (props.type === 'title3') {
     textSize.value = 20;
-    font.value = 'NanumGothicBold';
+    fontWeight.value = 500;
   } else if (props.type === 'title2') {
     textSize.value = 28;
-    font.value = 'NanumGothicExtraBold';
+    fontWeight.value = 800;
   } else if (props.type === 'title1') {
     textSize.value = 36;
-    font.value = 'NanumGothicExtraBold';
+    fontWeight.value = 800;
   }
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.app-typography {
+  white-space: pre-wrap;
+}
+</style>

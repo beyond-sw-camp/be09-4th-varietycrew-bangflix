@@ -3,14 +3,15 @@
     <template #content>
       <div class="notice-header-container">
         <div class="title">{{ notice.title }}</div>
-        <div class="writer">{{ notice.writer }}</div>
+        <div class="writer">{{ notice.nickname }}</div>
       </div>
-      <div class="content">{{ notice.createdAt }}</div>
+      <div class="content">{{ Helper.Date.formatDateTime(notice.createdAt) }}</div>
     </template>
   </Card>
 </template>
 
 <script setup>
+import { Helper } from '@/utils/Helper';
 import { defineProps } from 'vue';
 
 const props = defineProps({

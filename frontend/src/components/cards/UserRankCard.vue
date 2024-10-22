@@ -3,39 +3,44 @@
     <Card>
       <template #title>
         <div class="flex-row content-between">
-          <AppTypography type="title3">{{ props.rankUser.point.toLocaleString() }}점</AppTypography>
-          <Tag v-if="props.rankUser.rank >= 4" :value="`${props.rankUser.rank}위`" rounded severity="info"></Tag>
+          <AppTypography type="title3">{{ props.rankMember.point.toLocaleString() }} point</AppTypography>
+          <Tag v-if="props.rank >= 4" :value="`${props.rank}위`" rounded severity="info"></Tag>
         </div>
       </template>
       <template #content>
         <div class="flex-row gap-10 items-center">
-          <Avatar :image="props.rankUser.profileUrl" size="large" />
-          <div>
-            <AppTypography class="mb-xxs">{{ props.rankUser.nickname }}</AppTypography>
-            <AppTypography type="body2" color="darkgray">선호 장르: {{ props.rankUser.genres }}</AppTypography>
-          </div>
+          <UserAvatar :image-path="props.rankMember.image" />
+          <AppTypography class="mb-xxs">{{ props.rankMember.nickname }}</AppTypography>
         </div>
       </template>
       <template #footer>
-        <Button label="프로필 보기" size="small" severity="secondary" fluid @click="clickUser(props.rankUser.id)" />
+        <!-- <Button
+          label="프로필 보기"
+          size="small"
+          severity="secondary"
+          fluid
+          as="router-link"
+          :to="`/member/detail/${props.rankMember.memberCode}`"
+        /> -->
+        <Button label="프로필 보기" size="small" severity="secondary" fluid />
       </template>
     </Card>
 
     <!-- 메달 -->
     <Image
-      v-if="props.rankUser.rank === 1"
+      v-if="props.rank === 1"
       src="/src/assets/icons/medal-gold.png"
       class="item-medal"
       image-style="width: 50px"
     />
     <Image
-      v-else-if="props.rankUser.rank === 2"
+      v-else-if="props.rank === 2"
       src="/src/assets/icons/medal-silver.png"
       class="item-medal"
       image-style="width: 50px"
     />
     <Image
-      v-else-if="props.rankUser.rank === 3"
+      v-else-if="props.rank === 3"
       src="/src/assets/icons/medal-bronze.png"
       class="item-medal"
       image-style="width: 50px"
@@ -46,25 +51,20 @@
 <script setup>
 import { defineProps } from 'vue';
 import AppTypography from '../AppTypography.vue';
-import Avatar from 'primevue/avatar';
 import Image from 'primevue/image';
 import Button from 'primevue/button';
 import { useRouter } from 'vue-router';
 import Tag from 'primevue/tag';
+import UserAvatar from '../common/UserAvatar.vue';
 
 const props = defineProps({
-  /** rankUser
-   * {
-   *  id: number,
-   *  nickname: string,
-   *  profileUrl: string,
-   *  point: number,
-   *  genres: string "호러,공포,스릴러"
-   *  rank: number,
-   * }
-   */
-  rankUser: {
-    type: Object,
+  rankMember: {
+    type: Object, // MemberRankingDTO
+    required: true,
+  },
+
+  rank: {
+    type: Number,
     required: true,
   },
 });

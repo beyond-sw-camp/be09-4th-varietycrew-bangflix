@@ -73,12 +73,37 @@
             placeholder="이메일을 입력해주세요"
             type="email"
             :invalid="isValidEmail === false"
+            :disabled="isCompleteSendEmail"
           />
-          <Button label="이메일 인증" @click="checkDuplicateEmail" />
+          <Button v-if="isCompleteSendEmail" label="재전송" @click="retrySendEmail" />
+          <Button
+            v-else
+            label="이메일 인증"
+            :loading="isSendingEmail"
+            :disabled="isSendingEmail"
+            @click="sendEmailVerifyCode"
+          />
         </InputGroup>
         <small v-if="helperEmail" :class="{ error: isValidEmail === false, success: isValidEmail === true }">{{
           helperEmail
         }}</small>
+
+        <!-- 이메일 인증코드 입력 -->
+        <InputGroup v-if="isCompleteSendEmail" class="mt-xs">
+          <InputText
+            id="email-code"
+            v-model="emailCode"
+            placeholder="인증코드를 입력해주세요"
+            :invalid="isValidEmailCode === false"
+            :disabled="isCompleteVerifyEmail"
+          />
+          <Button label="인증코드 확인" :disabled="isCompleteVerifyEmail" @click="verifyEmail" />
+        </InputGroup>
+        <small
+          v-if="helperEmailCode"
+          :class="{ error: isValidEmailCode === false, success: isValidEmailCode === true }"
+          >{{ helperEmailCode }}</small
+        >
       </div>
 
       <div class="input-group">
@@ -137,6 +162,7 @@ const id = ref('');
 const password = ref('');
 const confirmPassword = ref('');
 const email = ref('');
+const emailCode = ref('');
 const nickname = ref('');
 const profileImageRef = ref('');
 let profileImageFile = null;
@@ -146,13 +172,19 @@ const isValidId = ref(null);
 const isValidPassword = ref(null);
 const isValidConfirmPassword = ref(null);
 const isValidEmail = ref(null);
+const isValidEmailCode = ref(null);
 const isValidNickname = ref(null);
 
 const helperId = ref('');
 const helperPassword = ref('');
 const helperConfirmPassword = ref('');
 const helperEmail = ref('');
+const helperEmailCode = ref('');
 const helperNickname = ref('');
+
+const isSendingEmail = ref(false);
+const isCompleteSendEmail = ref(false);
+const isCompleteVerifyEmail = ref(false);
 
 // 영문/숫자/특수문자 포함해서 8자 이상
 const regexPassword = /^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,}$/;
@@ -206,31 +238,66 @@ const checkDuplicateNickname = async () => {
   }
 };
 
-const checkDuplicateEmail = async () => {
+const sendEmailVerifyCode = async () => {
   if (!email.value) {
     isValidEmail.value = false;
     helperEmail.value = '이메일을 입력해주세요.';
     return;
   }
-  // const result = await $api.auth.post();
-  // if (result.isDuplicate) {
-  //   isValidEmail.value = false;
-  //   helperEmail.value = '이메일이 이미 사용 중입니다.';
-  // } else {
-  //   isValidId.value = true;
-  //   helperEmail.value = '사용가능한 이메일입니다.';
-  // }
+
+  isSendingEmail.value = true;
+  $api.auth.sendEmailVerifyCode(email.value).then(() => {
+    isSendingEmail.value = false;
+    isCompleteSendEmail.value = true;
+    isValidEmail.value = true;
+    helperEmail.value = '이메일로 인증코드가 전송되었습니다.';
+  });
+};
+
+const retrySendEmail = () => {
+  isCompleteSendEmail.value = false;
+  isCompleteVerifyEmail.value = false;
+  email.value = '';
+  emailCode.value = '';
+};
+
+const verifyEmail = async () => {
+  if (!emailCode.value) {
+    isValidEmailCode.value = false;
+    helperEmailCode.value = '인증코드를 입력해주세요.';
+    return;
+  }
+
+  $api.auth.verifyEmail(email.value, emailCode.value).then(() => {
+    isCompleteVerifyEmail.value = true;
+    isValidEmailCode.value = true;
+    helperEmailCode.value = '인증완료 되었습니다.';
+  });
 };
 
 const submitForm = async () => {
-  if (
-    !isValidId.value ||
-    !isValidPassword.value ||
-    !isValidConfirmPassword.value ||
-    !isValidEmail.value ||
-    !isValidNickname.value
-  ) {
-    showWarning('입력값 확인 필요', '입력 상태를 확인해주세요.');
+  if (!isValidId.value) {
+    showWarning('아이디 중복 체크 여부를 확인해주세요.');
+    return;
+  }
+
+  if (!isValidPassword.value || !isValidConfirmPassword.value) {
+    showWarning('비밀번호 입력값을 확인해주세요.');
+    return;
+  }
+
+  if (!isValidConfirmPassword.value) {
+    showWarning('비밀번호 확인 입력값을 확인해주세요.');
+    return;
+  }
+
+  if (!isValidEmail.value || !isValidEmailCode.value) {
+    showWarning('이메일 인증을 진행해주세요.');
+    return;
+  }
+
+  if (!isValidNickname.value) {
+    showWarning('닉네임 중복 체크 여부를 확인해주세요.');
     return;
   }
 
@@ -344,6 +411,12 @@ watch(email, newVal => {
 
   isValidEmail.value = true;
   helperEmail.value = '';
+});
+
+// 이메일 인증코드
+watch(emailCode, newVal => {
+  isValidEmailCode.value = null;
+  helperEmailCode.value = '';
 });
 
 // 닉네임 입력값 감시하여 helper text와 valid 상태 변경

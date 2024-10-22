@@ -51,6 +51,10 @@ export const useUserStore = defineStore(
       profileImage.value = userInfo.image;
     }
 
+    function setToken(accessToken) {
+      accessToken.value = accessToken;
+    }
+
     return {
       id,
       nickname,
@@ -64,6 +68,7 @@ export const useUserStore = defineStore(
       logout,
       saveTokens,
       saveUserInfo,
+      setToken,
     };
   },
   {
