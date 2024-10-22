@@ -11,6 +11,13 @@
 :sparkles: 정준서<br>
 <br>
 
+
+## CI/CD 아키텍쳐
+![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
+
+<br>
+<br>
+
 ## 기술 스택
 #### Front-end
 |JS|Vue & Vite|PrimeVue|Fetch API|
@@ -226,11 +233,6 @@
 
 ### CI/CD 시연
 ![화면비 1920](https://github.com/user-attachments/assets/35cb0544-adef-48ee-b687-e52152f1ddfd)
-
-<br>
-
-## CI/CD 아키텍쳐
-![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
 
 <br>
 <br>
