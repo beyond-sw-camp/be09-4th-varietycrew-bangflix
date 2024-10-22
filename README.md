@@ -1,14 +1,15 @@
 # 방탈출 리뷰 플랫폼 Bangflix
 <img src="https://github.com/user-attachments/assets/d17ac4f1-3502-4717-96ad-686969a422bf" alt="스크린샷_2024-10-08_오후_4 21 04-removebg-preview" width="150" />
-
-
+<br>
+<br>
 
 ## 팀원
-* 노다민
-* 양현진
-* 용길한
-* 장호정
-* 정준서
+:sparkles: 노다민<br>
+:sparkles: 양현진<br>
+:sparkles: 용길한<br>
+:sparkles: 장호정<br>
+:sparkles: 정준서<br>
+<br>
 
 ## 기술 스택
 #### Front-end
@@ -26,13 +27,14 @@
 |:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 | <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white"> | <img src="https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white"> | <img src="https://img.shields.io/badge/jenkins-%232C5263.svg?style=for-the-badge&logo=jenkins&logoColor=white"> | <img src="https://img.shields.io/badge/ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=white"> | <img src="https://img.shields.io/badge/terraform-844FBA?style=for-the-badge&logo=terraform&logoColor=white"> | <img src="https://img.shields.io/badge/ingress-783CBD?style=for-the-badge&logo=ingress&logoColor=white"> | <img src="https://img.shields.io/badge/nginx-009639?style=for-the-badge&logo=nginx&logoColor=white"> |
 
+<br>
 
 ## 개발 도구
 |VSCode|IntelliJ|Figma|Slack|GitHub|
 |:--:|:--:|:--:|:--:|:--:|
 |<img src="https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white"> | <img src="https://img.shields.io/badge/IntelliJIDEA-000000.svg?style=for-the-badge&logo=intellij-idea&logoColor=white"> | <img src="https://img.shields.io/badge/figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white"> | <img src="https://img.shields.io/badge/slack-4A154B?style=for-the-badge&logo=slack&logoColor=white"> | <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">|
 
-
+<br>
 
 ## 프로젝트 소개
 > 방탈출을 사랑하는 모든 이들을 위한 특별한 공간, 방탈출 리뷰 플랫폼 **Bangflix**에 오신 것을 환영합니다. 이곳은 다양한 방탈출 테마에 대한 솔직한 리뷰를 작성하고, 다른 사용자들의 의견을 통해 내 취향에 맞는 테마를 발견할 수 있는 플랫폼입니다.
@@ -59,14 +61,19 @@
 
 - 비즈니스 기회 확대: 추후 방탈출 업체들도 플랫폼에 참여하여 사용자 리뷰를 통해 자신들의 테마를 개선하고, 이벤트를 통해 더 많은 고객을 유치할 수 있습니다. 이는 서로에게 윈-윈(win-win) 효과를 가져옵니다.
 
+<br>
 
 ## 요구사항 명세서
 <img src="https://github.com/user-attachments/assets/9babe129-3821-40b2-a2b2-ced1c7b1842e" alt="방플릭스_요구사항명세서" width="880" />
 
+<br>
+<br>
 
 ## WBS
 <img src="https://github.com/user-attachments/assets/bff9091f-59aa-401a-ac4b-0d9ca1d11a1b" alt="방플릭스_wbs" width="880" />
 
+<br>
+<br>
 
 ## DDD
 ### 도메인 도출
@@ -80,6 +87,8 @@
 ### 연관 관계
 <img src="https://github.com/user-attachments/assets/b65e9472-0e50-441e-958b-2c5a173dd984" alt="방플릭스_DDD_연관관계" width="880" />
 
+<br>
+<br>
 
 ## DB 모델링
 ### 논리 모델링
@@ -89,6 +98,8 @@
 ### 물리 모델링
 <img src="https://github.com/user-attachments/assets/8fe55c52-b780-4be2-99d5-c86cb2659605" alt="방플릭스_물리모델링" width="880" />
 
+<br>
+<br>
 
 ## UI 설계
 ### 로그인 & 회원가입
@@ -142,8 +153,9 @@
 <img src="https://github.com/user-attachments/assets/2cbcf343-5c82-495b-a633-63177dd9ace8" alt="방플릭스_UI_관리자전용" width="880" />
 
 
-
-
+<br>
+<br>
+<br>
 
 
 ## TEST 결과
@@ -209,10 +221,14 @@
 ### 마이페이지 조회
 ![마이페이지 조회](https://github.com/user-attachments/assets/b288f00d-6049-437c-be8d-d29c80b90dba)
 
+<br>
+<br>
+
 ## CI/CD 아키텍쳐
 ![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
 
-
+<br>
+<br>
 
 ## 동료 평가
 
