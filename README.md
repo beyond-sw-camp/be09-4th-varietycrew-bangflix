@@ -63,6 +63,18 @@
 
 <br>
 
+
+### CI/CD 시연
+![화면비 1920](https://github.com/user-attachments/assets/35cb0544-adef-48ee-b687-e52152f1ddfd)
+
+<br>
+
+## CI/CD 아키텍쳐
+![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
+
+<br>
+<br>
+
 ## 요구사항 명세서
 <img src="https://github.com/user-attachments/assets/9babe129-3821-40b2-a2b2-ced1c7b1842e" alt="방플릭스_요구사항명세서" width="880" />
 
@@ -224,16 +236,6 @@
 <br>
 <br>
 
-### CI/CD 시연
-![화면비 1920](https://github.com/user-attachments/assets/35cb0544-adef-48ee-b687-e52152f1ddfd)
-
-<br>
-
-## CI/CD 아키텍쳐
-![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
-
-<br>
-<br>
 
 ## Jenkins script
 <details>
