@@ -11,13 +11,6 @@
 :sparkles: 정준서<br>
 <br>
 
-
-## 시스템 아키텍쳐
-![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
-
-<br>
-<br>
-
 ## 기술 스택
 #### Front-end
 |JS|Vue & Vite|PrimeVue|Fetch API|
@@ -235,7 +228,102 @@
 ![화면비 1920](https://github.com/user-attachments/assets/35cb0544-adef-48ee-b687-e52152f1ddfd)
 
 <br>
+
+## CI/CD 아키텍쳐
+![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
+
 <br>
+<br>
+
+## Jenkins script
+<details>
+<summary>Jenkins script 펼쳐보기</summary>
+<div markdown="1">
+
+  ```groovy
+  pipeline {
+      agent any
+  
+      tools {
+          gradle 'gradle'
+          jdk 'openJDK17'
+      }
+  
+      environment {
+          DOCKERHUB_CREDENTIALS = credentials('DOCKERHUB_PASSWORD')
+          DOCKERHUB_USERNAME = 'rlfgks'
+          GITHUB_URL = 'https://github.com/variety-crew/bangflix-backend.git'
+      }
+  
+      stages {
+          stage('Preparation') {
+              steps {
+                  script {
+                      if (isUnix()) {
+                          sh 'docker --version'
+                      } else {
+                          bat 'docker --version'
+                      }
+                  }
+              }
+          }
+          stage('Source Build') {
+              steps {
+                  git branch: 'main', url: "${env.GITHUB_URL}"
+                  script {
+                      if (isUnix()) {
+                          // 로컬 환경에서 사용할 application-local.yml을 application.yml로 복사
+                          sh 'cp /Users/yong-gilhan/Desktop/project/veriety-crew/bangflix/backend/src/main/resources/application-local.yml src/main/resources/application.yml'
+                          sh "chmod +x ./gradlew"
+                          sh "./gradlew clean build"
+                      } else {
+                          bat "gradlew.bat clean build"
+                      }
+                  }
+              }
+          }
+          stage('Container Build and Push') {
+              steps {    
+                  script {
+                      withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_PASSWORD', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                          if (isUnix()) {
+                              sh "cp ./build/libs/*.jar ."
+                              sh "docker build -t ${DOCKERHUB_USERNAME}/bangflix-springboot:latest . --platform linux/x86_64"
+                              sh "docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}"
+                              sh "docker push ${DOCKERHUB_USERNAME}/bangflix-springboot:latest"
+                          } else {
+                              bat "copy .\\build\\libs\\*.jar ."
+                              bat "docker build -t ${DOCKERHUB_USERNAME}/bangflix-springboot:latest ."
+                              bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                              bat "docker push ${DOCKERHUB_USERNAME}/bangflix-springboot:latest"
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  
+      post {
+          always {
+              script {
+                  if (isUnix()) {
+                      sh 'docker logout'
+                  } else {
+                      bat 'docker logout'
+                  }
+              }
+          }
+          success {
+              echo 'Pipeline succeeded!'
+          }
+          failure {
+              echo 'Pipeline failed!'
+          }
+      }
+  }
+  ```
+
+</details>
 
 ## 동료 평가
 
