@@ -70,7 +70,7 @@
 <br>
 
 ## CI/CD 아키텍쳐
-![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/0d740bc4-4e66-4b0c-b3a2-3cd402db013a)
+![방플릭스_CI:CD아키텍쳐](https://github.com/user-attachments/assets/22b32b2b-b98f-4c3e-8efb-0d45390ca4ec)
 
 <br>
 <br>
